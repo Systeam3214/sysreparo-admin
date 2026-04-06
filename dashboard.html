@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h3>SysReparo</h3>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="clientes.html">Clientes</a>
+  <a href="servicos.html">Serviços</a>
+  <a href="usuarios.html">Usuários</a>
+</div>
+
+<div class="main">
+  <h1>Dashboard</h1>
+
+  <div class="cards">
+    <div class="box" id="totalClientes">Clientes: ...</div>
+    <div class="box" id="totalServicos">Serviços: ...</div>
+  </div>
+</div>
+
+<script type="module">
+import { db } from "./js/firebase.js";
+import { collection, getDocs } from 
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+async function load() {
+  const clientes = await getDocs(collection(db, "clientes"));
+  const servicos = await getDocs(collection(db, "servicos"));
+
+  document.getElementById("totalClientes").innerText =
+    "Clientes: " + clientes.size;
+
+  document.getElementById("totalServicos").innerText =
+    "Serviços: " + servicos.size;
+}
+
+load();
+</script>
+
+</body>
+</html>
