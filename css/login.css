@@ -2,65 +2,54 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 body {
   height: 100vh;
   background: #000;
   color: #fff;
-}
-
-/* LAYOUT */
-.container {
-  display: flex;
-  height: 100%;
-}
-
-/* LADO ESQUERDO (ESTILO PREMIUM) */
-.left {
-  flex: 1;
-  background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
-  border-right: 1px solid #111;
+}
+
+/* CONTAINER */
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+/* REMOVE LAYOUT DESKTOP */
+.left {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .left h1 {
-  font-size: 42px;
-  font-weight: 600;
+  font-size: 28px;
   letter-spacing: 2px;
 }
 
 .left p {
-  margin-top: 10px;
+  font-size: 13px;
   color: #777;
-}
-
-/* LADO DIREITO */
-.right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin-top: 5px;
 }
 
 /* CARD */
 .card {
-  width: 340px;
-  padding: 40px;
   background: #050505;
-  border-radius: 16px;
   border: 1px solid #111;
+  padding: 25px;
+  border-radius: 20px;
 }
 
 /* TÍTULO */
 .card h2 {
   text-align: center;
   margin-bottom: 25px;
-  font-weight: 500;
 }
 
 /* INPUTS */
@@ -69,61 +58,48 @@ body {
 }
 
 .input-group label {
-  font-size: 13px;
-  color: #aaa;
-  margin-bottom: 5px;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 6px;
   display: block;
 }
 
-input {
+.input-group input {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #222;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #111;
   background: #000;
   color: #fff;
-  transition: 0.2s;
+  font-size: 14px;
+  outline: none;
 }
 
-/* FOCO */
-input:focus {
+.input-group input:focus {
   border-color: #fff;
 }
 
 /* BOTÃO */
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
   background: #fff;
   color: #000;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s;
 }
 
-/* HOVER */
-button:hover {
-  background: #ddd;
+button:active {
+  transform: scale(0.98);
 }
 
 /* ERRO */
 #erro {
   margin-top: 12px;
+  font-size: 12px;
+  color: red;
   text-align: center;
-  color: #ff4d4d;
-  font-size: 13px;
-}
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-  .left {
-    display: none;
-  }
-
-  .card {
-    width: 90%;
-  }
 }
