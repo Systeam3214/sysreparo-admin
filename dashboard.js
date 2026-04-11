@@ -34,14 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetSec) {
             targetSec.classList.add('active');
         }
-
-        // Fecha menu mobile ao navegar
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('mobileOverlay');
-        if (sidebar.classList.contains('active')) {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        }
     }
 
     navLinks.forEach(link => {
@@ -886,12 +878,3 @@ document.addEventListener('DOMContentLoaded', () => {
         if (staffTable) window.renderStaffTable();
     }, 1000);
 });
-
-// --- LÓGICA MOBILE ---
-window.toggleMobileMenu = function() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('mobileOverlay');
-    
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-};
