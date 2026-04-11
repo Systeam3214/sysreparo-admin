@@ -774,7 +774,8 @@ window.applyFinancialFilter = function() {
     window.renderFinancialTable();
 };
 
-window.renderFinancialTable = function() {
+// Declarado como função para hoisting
+function renderFinancialTable() {
     const tableBody = document.getElementById('financialTableBody');
     if (!tableBody) return;
 
@@ -848,7 +849,8 @@ window.renderFinancialTable = function() {
     });
 
     financialTotalEl.innerText = `R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-};
+}
+window.renderFinancialTable = renderFinancialTable;
 
 window.activateWarranty = function(id) {
     showConfirm('Deseja acionar o retorno desta OS? O status voltará para "Em Reparo".', async () => {
@@ -976,7 +978,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- GESTÃO DE PEÇAS ---
-window.renderPartsTable = function() {
+// Declarado como função para hoisting
+function renderPartsTable() {
     const tableBody = document.getElementById('partsTableBody');
     if (!tableBody) return;
     tableBody.innerHTML = '';
@@ -1007,7 +1010,8 @@ window.renderPartsTable = function() {
         `;
         tableBody.appendChild(tr);
     });
-};
+}
+window.renderPartsTable = renderPartsTable;
 
 window.openPartModal = function() {
     document.getElementById('partId').value = '';
