@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Rstark - Acesso Claro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="split-layout">
+        <!-- Lado Esquerdo com Imagem/Branding -->
+        <div class="brand-section">
+            <div class="brand-content">
+                <div class="logo-badge">
+                    <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <h1>Gestão Rstark</h1>
+                <p>O sistema definitivo para controle técnico, ordens de serviço e reparos eletrônicos de alta performance.</p>
+            </div>
+            <!-- Decoração geométrica -->
+            <div class="circle-decoration"></div>
+        </div>
+
+        <!-- Lado Direito com Formulário -->
+        <div class="login-section">
+            <div class="login-wrapper">
+                <h2>Seja bem-vindo de volta!</h2>
+                <p class="subtitle">Insira suas credenciais para acessar a plataforma.</p>
+
+                <form id="loginForm" class="login-form">
+                    <div class="input-modern">
+                        <label for="email">E-mail corporativo</label>
+                        <input type="email" id="email" placeholder="nome@rstark.com" required>
+                    </div>
+
+                    <div class="input-modern">
+                        <label for="password">Senha de acesso</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" placeholder="••••••••" required>
+                            <button type="button" id="togglePassword" class="toggle-btn">
+                                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <label class="remember-me">
+                            <input type="checkbox">
+                            <span>Lembrar-me</span>
+                        </label>
+                        <a href="#" class="forgot-link">Esqueceu a senha?</a>
+                    </div>
+
+                    <button type="submit" class="primary-btn" id="submitBtn">
+                        <span>Entrar no Sistema</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
