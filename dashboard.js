@@ -630,6 +630,8 @@ window.deleteOrder = async function(id) {
 };
 
 // Global Clientes CRUD 
+window.openClientModal = function() {
+    document.getElementById('clientId').value = '';
     document.getElementById('clientName').value = '';
     document.getElementById('clientEmail').value = '';
     document.getElementById('clientPhone').value = '';
