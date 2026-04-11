@@ -896,71 +896,105 @@ window.generateOSPDF = async function() {
 
     const btn = document.getElementById('btnDownloadPDF');
     const originalContent = btn.innerHTML;
-    btn.innerText = "Gerando...";
+    btn.innerText = "Analisando Modelo...";
     btn.disabled = true;
 
     try {
         const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-        // 1. Carregar o template (Usando Base64 para evitar erro de CORS local)
+        // 1. Carregar o template
         const pdfDoc = await PDFDocument.load(OS_TEMPLATE_BASE64);
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize();
 
-        // 2. Configurar fonte
+        // 2. Configurar fontes
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // Função auxiliar para desenhar texto (Origin Y é bottom-up)
-        const drawText = (text, x, y, size = 10, isBold = false) => {
+        // 3. Tentar detectar campos de formulário (Interativo)
+        const form = pdfDoc.getForm();
+        const fields = form.getFields();
+        
+        console.log("--- Inspeção de PDF ---");
+        console.log(`Páginas: ${pages.length} | Tamanho: ${width}x${height}`);
+
+        if (fields.length > 0) {
+            console.log("Campos de formulário detectados:", fields.map(f => f.getName()));
+            // Lógica de preenchimento de campos por nome (se conhecermos os nomes)
+            // Exemplo: if (form.getTextField('txtNome')) form.getTextField('txtNome').setText(order.client);
+        } else {
+            console.log("Nenhum campo de formulário interativo encontrado. Usando alinhamento por coordenadas.");
+        }
+
+        /**
+         * Função Auxiliar: Escreve "apagando" o que tem embaixo
+         * A origem do Y no pdf-lib é BASE para TOPO. Aqui invertemos.
+         */
+        const writeSmart = (text, x, y, size = 10, isBold = false, boxWidth = 200) => {
+            const currentY = height - y;
+            // Desenha retângulo branco para "apagar" o que estava lá
+            firstPage.drawRectangle({
+                x: x - 2,
+                y: currentY - 2,
+                width: boxWidth,
+                height: size + 4,
+                color: rgb(1, 1, 1), // Branco
+            });
+            // Escreve o novo texto
             firstPage.drawText(String(text || ''), {
                 x: x,
-                y: height - y, // Inverte para top-down
+                y: currentY,
                 size: size,
                 font: isBold ? fontBold : font,
                 color: rgb(0, 0, 0),
             });
         };
 
-        // --- MAPEAMENTO DE COORDENADAS (VALORES ESTIMADOS - AJUSTAR SE PRECISAR) ---
-        // Topo / Info OS
-        drawText(order.displayId, 470, 50, 14, true); 
-        drawText(order.date, 470, 70, 10);
-        drawText(order.status, 470, 85, 9);
+        // --- MAPEAMENTO AJUSTADO (BASEADO NO LAYOUT PADRÃO RSTARK) ---
+        // Topo Direito - Info OS
+        writeSmart(order.displayId, 470, 50, 14, true, 80); 
+        writeSmart(order.date, 470, 70, 10, false, 80);
+        writeSmart(order.status, 470, 85, 9, false, 80);
 
-        // Dados do Cliente (Centralizado na esquerda)
-        drawText(order.client, 100, 145, 11);
+        // Dados do Cliente
+        writeSmart(order.client, 100, 145, 11, true, 300);
         
         const clientObj = mockClients.find(c => c.name === order.client);
         if (clientObj) {
-            drawText(clientObj.phone, 100, 160, 10);
-            drawText(clientObj.email || '-', 100, 175, 9);
+            writeSmart(clientObj.phone, 100, 160, 10, false, 150);
+            writeSmart(clientObj.email || '-', 100, 175, 9, false, 200);
         }
 
         // Dados do Aparelho
-        drawText(`${order.deviceType || ''} ${order.deviceModel || ''}`, 100, 215, 11);
-        drawText(order.deviceSerial || 'S/N', 100, 230, 10);
+        writeSmart(`${order.deviceType || ''} ${order.deviceModel || ''}`, 100, 215, 11, true, 300);
+        writeSmart(order.deviceSerial || 'S/N', 100, 230, 10, false, 200);
 
-        // Reclamação / Defeito
+        // Reclamação / Defeito (Múltiplas linhas)
         if (order.issue) {
-            const lines = order.issue.match(/.{1,70}/g) || [];
-            lines.forEach((line, idx) => {
-                drawText(line, 60, 310 + (idx * 15), 10);
+            // "Apaga" a área do texto grande
+            firstPage.drawRectangle({
+                x: 55, y: height - 380, width: 500, height: 80, color: rgb(1, 1, 1)
+            });
+            const lines = order.issue.match(/.{1,80}/g) || [];
+            lines.slice(0, 5).forEach((line, idx) => {
+                firstPage.drawText(line, {
+                    x: 60, y: height - (310 + (idx * 15)), size: 10, font: font, color: rgb(0, 0, 0)
+                });
             });
         }
 
-        // Valor Final
+        // Valor Final (Canto Inferior Direito)
         const vFinal = order.finalValue && order.finalValue > 0 ? order.finalValue : order.estimatedValue;
-        drawText(`R$ ${parseFloat(vFinal || 0).toFixed(2)}`, 440, 420, 13, true);
+        writeSmart(`R$ ${parseFloat(vFinal || 0).toFixed(2)}`, 450, 420, 14, true, 100);
 
-        // Garantia e Data Saída (Se status Entregue)
+        // Garantia e Saída
         if (order.status === 'Entregue') {
             const exitDateStr = order.exitDate ? (order.exitDate.toDate ? order.exitDate.toDate().toLocaleDateString() : order.exitDate) : new Date().toLocaleDateString();
-            drawText(`Saída: ${exitDateStr} | Garantia: 3 dias`, 60, 420, 10);
+            writeSmart(`Saída: ${exitDateStr} | Garantia: 3 dias`, 60, 420, 10, false, 300);
         }
 
-        // 3. Salvar e baixar
+        // 4. Salvar e disparar download
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
