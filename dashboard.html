@@ -495,10 +495,6 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="action-btn" onclick="generateOSPDF()" id="btnDownloadPDF" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); margin-right: auto; display: none;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Baixar PDF
-                    </button>
                     <button class="action-btn danger" onclick="closeOrderModal()">Cancelar</button>
                     <button class="action-btn primary" onclick="saveOrder()">Emitir Ordem</button>
                 </div>
@@ -562,8 +558,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
-    <script src="os_template_base64.js"></script>
-    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>

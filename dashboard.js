@@ -372,9 +372,6 @@ window.openOrderModal = function() {
     document.getElementById('newClientPhone').value = '';
     document.getElementById('newClientEmail').value = '';
 
-    if (document.getElementById('btnDownloadPDF')) {
-        document.getElementById('btnDownloadPDF').style.display = 'none';
-    }
     document.getElementById('orderModal').classList.add('active');
 };
 
@@ -557,10 +554,6 @@ window.editOrder = function(id) {
     
     document.getElementById('orderStatus').value = order.status || 'Aguardando Análise';
     document.getElementById('orderStatusGroup').style.display = 'block';
-    if (document.getElementById('btnDownloadPDF')) {
-        document.getElementById('btnDownloadPDF').style.display = 'flex';
-    }
-
     document.getElementById('orderModal').querySelector('h2').innerText = `Editar Ordem: ${order.displayId}`;
     document.getElementById('orderModal').classList.add('active');
 };
@@ -885,130 +878,3 @@ document.addEventListener('DOMContentLoaded', () => {
         if (staffTable) window.renderStaffTable();
     }, 1000);
 });
-
-// --- GERAÇÃO DE PDF (USANDO TEMPLATE LOCAL + PDF-LIB) ---
-window.generateOSPDF = async function() {
-    const orderId = document.getElementById('orderId').value;
-    if (!orderId) return;
-
-    const order = mockOrders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const btn = document.getElementById('btnDownloadPDF');
-    const originalContent = btn.innerHTML;
-    btn.innerText = "Analisando Modelo...";
-    btn.disabled = true;
-
-    try {
-        const { PDFDocument, rgb, StandardFonts } = PDFLib;
-
-        // 1. Carregar o template
-        const pdfDoc = await PDFDocument.load(OS_TEMPLATE_BASE64);
-        const pages = pdfDoc.getPages();
-        const firstPage = pages[0];
-        const { width, height } = firstPage.getSize();
-
-        // 2. Configurar fontes
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-        // 3. Tentar detectar campos de formulário (Interativo)
-        const form = pdfDoc.getForm();
-        const fields = form.getFields();
-        
-        console.log("--- Inspeção de PDF ---");
-        console.log(`Páginas: ${pages.length} | Tamanho: ${width}x${height}`);
-
-        if (fields.length > 0) {
-            console.log("Campos de formulário detectados:", fields.map(f => f.getName()));
-            // Lógica de preenchimento de campos por nome (se conhecermos os nomes)
-            // Exemplo: if (form.getTextField('txtNome')) form.getTextField('txtNome').setText(order.client);
-        } else {
-            console.log("Nenhum campo de formulário interativo encontrado. Usando alinhamento por coordenadas.");
-        }
-
-        /**
-         * Função Auxiliar: Escreve "apagando" o que tem embaixo
-         * A origem do Y no pdf-lib é BASE para TOPO. Aqui invertemos.
-         */
-        const writeSmart = (text, x, y, size = 10, isBold = false, boxWidth = 200) => {
-            const currentY = height - y;
-            // Desenha retângulo branco para "apagar" o que estava lá
-            firstPage.drawRectangle({
-                x: x - 2,
-                y: currentY - 2,
-                width: boxWidth,
-                height: size + 4,
-                color: rgb(1, 1, 1), // Branco
-            });
-            // Escreve o novo texto
-            firstPage.drawText(String(text || ''), {
-                x: x,
-                y: currentY,
-                size: size,
-                font: isBold ? fontBold : font,
-                color: rgb(0, 0, 0),
-            });
-        };
-
-        // --- MAPEAMENTO AJUSTADO (BASEADO NO LAYOUT PADRÃO RSTARK) ---
-        // Topo Direito - Info OS
-        writeSmart(order.displayId, 470, 50, 14, true, 80); 
-        writeSmart(order.date, 470, 70, 10, false, 80);
-        writeSmart(order.status, 470, 85, 9, false, 80);
-
-        // Dados do Cliente
-        writeSmart(order.client, 100, 145, 11, true, 300);
-        
-        const clientObj = mockClients.find(c => c.name === order.client);
-        if (clientObj) {
-            writeSmart(clientObj.phone, 100, 160, 10, false, 150);
-            writeSmart(clientObj.email || '-', 100, 175, 9, false, 200);
-        }
-
-        // Dados do Aparelho
-        writeSmart(`${order.deviceType || ''} ${order.deviceModel || ''}`, 100, 215, 11, true, 300);
-        writeSmart(order.deviceSerial || 'S/N', 100, 230, 10, false, 200);
-
-        // Reclamação / Defeito (Múltiplas linhas)
-        if (order.issue) {
-            // "Apaga" a área do texto grande
-            firstPage.drawRectangle({
-                x: 55, y: height - 380, width: 500, height: 80, color: rgb(1, 1, 1)
-            });
-            const lines = order.issue.match(/.{1,80}/g) || [];
-            lines.slice(0, 5).forEach((line, idx) => {
-                firstPage.drawText(line, {
-                    x: 60, y: height - (310 + (idx * 15)), size: 10, font: font, color: rgb(0, 0, 0)
-                });
-            });
-        }
-
-        // Valor Final (Canto Inferior Direito)
-        const vFinal = order.finalValue && order.finalValue > 0 ? order.finalValue : order.estimatedValue;
-        writeSmart(`R$ ${parseFloat(vFinal || 0).toFixed(2)}`, 450, 420, 14, true, 100);
-
-        // Garantia e Saída
-        if (order.status === 'Entregue') {
-            const exitDateStr = order.exitDate ? (order.exitDate.toDate ? order.exitDate.toDate().toLocaleDateString() : order.exitDate) : new Date().toLocaleDateString();
-            writeSmart(`Saída: ${exitDateStr} | Garantia: 3 dias`, 60, 420, 10, false, 300);
-        }
-
-        // 4. Salvar e disparar download
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Recibo_OS_${order.displayId}.pdf`;
-        link.click();
-        
-        URL.revokeObjectURL(url);
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao editar o PDF: " + e.message);
-    } finally {
-        btn.innerHTML = originalContent;
-        btn.disabled = false;
-    }
-};
