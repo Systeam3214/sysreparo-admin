@@ -16,8 +16,10 @@ const db = firebase.firestore();
 // Estado reativo global
 let mockOrders = [];
 let mockClients = [];
+let mockParts = [];
 let currentFilter = 'Todos';
 let currentUserTag = 'worker'; // Global para controle de UI dinâmica
+let currentUsedParts = []; // Lista temporária para o modal de OS
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- NAVEGAÇÃO DO SIDEBAR ---
@@ -148,6 +150,7 @@ async function checkPermissions(user) {
     // Re-renderiza tabelas para aplicar travas nos botões de delete
     window.renderOrdersTable(currentFilter);
     window.renderClientsTable();
+    window.renderPartsTable();
 }
 
 function getBadgeClass(status) {
@@ -334,6 +337,16 @@ function setupFirebaseListeners() {
     }, (error) => {
         console.error("Erro no listener de Ordens:", error);
     });
+
+    db.collection('parts').onSnapshot((snapshot) => {
+        mockParts = [];
+        snapshot.forEach(docSnap => {
+            mockParts.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        window.renderPartsTable();
+    }, (error) => {
+        console.error("Erro no listener de Peças:", error);
+    });
 }
 
 // --- FUNÇÕES GLOBAIS DE MODAL E CRUD PRINCIPAIS ---
@@ -346,9 +359,16 @@ window.openOrderModal = function() {
     document.getElementById('orderDeviceModel').value = '';
     document.getElementById('orderDeviceSerial').value = '';
     document.getElementById('orderIssue').value = '';
-    document.getElementById('orderEstimatedValue').value = '';
-    document.getElementById('orderFinalValue').value = '';
+    document.getElementById('orderLaborPrice').value = '';
+    document.getElementById('orderPartsTotal').value = '0.00';
+    document.getElementById('orderTotalDisplay').innerText = 'R$ 0,00';
+    document.getElementById('orderFinalValue').value = '0';
+    document.getElementById('orderEstimatedValue').value = '0';
     
+    currentUsedParts = [];
+    window.renderOrderUsedParts();
+    window.updateOrderPartSelector();
+
     document.getElementById('orderStatusGroup').style.display = 'none';
     document.getElementById('orderModal').querySelector('h2').innerText = 'Nova Ordem de Serviço';
 
@@ -438,8 +458,10 @@ window.saveOrder = async function() {
     const deviceModel = document.getElementById('orderDeviceModel').value;
     let deviceSerial = document.getElementById('orderDeviceSerial').value.trim();
     const issue = document.getElementById('orderIssue').value;
-    const estimatedValue = parseFloat(document.getElementById('orderEstimatedValue').value) || 0;
-    const finalValue = parseFloat(document.getElementById('orderFinalValue').value) || 0;
+    
+    const laborPrice = parseFloat(document.getElementById('orderLaborPrice').value) || 0;
+    const partsTotal = parseFloat(document.getElementById('orderPartsTotal').value) || 0;
+    const finalTotal = laborPrice + partsTotal;
 
     if (!deviceModel) {
         alert('Por favor, insira a Marca e Modelo do aparelho.');
@@ -478,9 +500,25 @@ window.saveOrder = async function() {
                 client: clientNameFinal,
                 status: statusVal || 'Aguardando Análise',
                 deviceType, deviceModel, deviceSerial, issue,
-                estimatedValue, finalValue,
-                exitDate: exitDate
+                laborPrice, partsTotal,
+                finalValue: finalTotal,
+                estimatedValue: finalTotal, // Simplificado para usar o total
+                exitDate: exitDate,
+                usedParts: currentUsedParts
             });
+
+            // Lógica de baixa de estoque se mudou para entregue
+            if (statusVal === 'Entregue' && oldOrder.status !== 'Entregue') {
+                for (let up of currentUsedParts) {
+                    const partDoc = await db.collection('parts').doc(up.id).get();
+                    if (partDoc.exists) {
+                        const currentStock = partDoc.data().stock || 0;
+                        await db.collection('parts').doc(up.id).update({
+                            stock: Math.max(0, currentStock - 1)
+                        });
+                    }
+                }
+            }
         } else {
             await db.collection('orders').add({
                 displayId: customId,
@@ -490,8 +528,11 @@ window.saveOrder = async function() {
                 date: dateStr,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 deviceType, deviceModel, deviceSerial, issue,
-                estimatedValue, finalValue,
-                exitDate: null
+                laborPrice, partsTotal,
+                finalValue: finalTotal,
+                estimatedValue: finalTotal,
+                exitDate: null,
+                usedParts: currentUsedParts
             });
         }
 
@@ -549,8 +590,12 @@ window.editOrder = function(id) {
     document.getElementById('orderDeviceSerial').value = defSerial;
     document.getElementById('orderIssue').value = defIssue;
     
-    document.getElementById('orderEstimatedValue').value = order.estimatedValue || '';
-    document.getElementById('orderFinalValue').value = order.finalValue || '';
+    document.getElementById('orderLaborPrice').value = order.laborPrice || 0;
+    document.getElementById('orderPartsTotal').value = (order.partsTotal || 0).toFixed(2);
+    currentUsedParts = order.usedParts || [];
+    window.renderOrderUsedParts();
+    window.updateOrderPartSelector();
+    window.calculateOrderTotal();
     
     document.getElementById('orderStatus').value = order.status || 'Aguardando Análise';
     document.getElementById('orderStatusGroup').style.display = 'block';
@@ -877,4 +922,206 @@ document.addEventListener('DOMContentLoaded', () => {
         const staffTable = document.getElementById('staffTable');
         if (staffTable) window.renderStaffTable();
     }, 1000);
+});
+
+// --- GESTÃO DE PEÇAS ---
+window.renderPartsTable = function() {
+    const tableBody = document.getElementById('partsTableBody');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    if (mockParts.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma peça cadastrada.</td></tr>`;
+        return;
+    }
+
+    mockParts.forEach(part => {
+        const isOutOfStock = (part.stock || 0) <= 0;
+        const stockHtml = isOutOfStock 
+            ? `<span style="color: #ef4444; font-weight: 600;">⚠️ Reposição (Comprar!)</span>`
+            : `<span>${part.stock} un.</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><div style="font-weight: 500;">${part.name}</div></td>
+            <td>${part.model}</td>
+            <td>R$ ${(part.price || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td>${stockHtml}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="icon-btn edit" onclick="editPart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                    <button class="icon-btn delete" onclick="deletePart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+};
+
+window.openPartModal = function() {
+    document.getElementById('partId').value = '';
+    document.getElementById('partName').value = '';
+    document.getElementById('partModel').value = '';
+    document.getElementById('partPrice').value = '';
+    document.getElementById('partStock').value = '';
+    document.getElementById('partModalTitle').innerText = 'Nova Peça';
+    document.getElementById('partModal').classList.add('active');
+};
+
+window.closePartModal = function() {
+    document.getElementById('partModal').classList.remove('active');
+};
+
+window.savePart = async function() {
+    const id = document.getElementById('partId').value;
+    const name = document.getElementById('partName').value;
+    const model = document.getElementById('partModel').value;
+    const price = parseFloat(document.getElementById('partPrice').value) || 0;
+    const stock = parseInt(document.getElementById('partStock').value) || 0;
+
+    if (!name || !model) {
+        alert("Nome e Modelo são obrigatórios!");
+        return;
+    }
+
+    try {
+        if (id) {
+            await db.collection('parts').doc(id).update({ name, model, price, stock });
+        } else {
+            await db.collection('parts').add({ name, model, price, stock, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+        window.closePartModal();
+    } catch(e) {
+        alert("Erro ao salvar peça.");
+    }
+};
+
+window.editPart = function(id) {
+    const part = mockParts.find(p => p.id === id);
+    if (!part) return;
+    document.getElementById('partId').value = part.id;
+    document.getElementById('partName').value = part.name;
+    document.getElementById('partModel').value = part.model;
+    document.getElementById('partPrice').value = part.price;
+    document.getElementById('partStock').value = part.stock;
+    document.getElementById('partModalTitle').innerText = 'Editar Peça';
+    document.getElementById('partModal').classList.add('active');
+};
+
+window.deletePart = function(id) {
+    showConfirm('Excluir esta peça permanentemente do estoque?', async () => {
+        await db.collection('parts').doc(id).delete();
+    });
+};
+
+// --- LÓGICA DE SELEÇÃO DE PEÇAS NA OS ---
+window.updateOrderPartSelector = function() {
+    const selector = document.getElementById('orderPartSelector');
+    if (!selector) return;
+    selector.innerHTML = '<option value="">Escolha uma peça do estoque...</option>';
+    mockParts.forEach(p => {
+        if (p.stock > 0) {
+            selector.innerHTML += `<option value="${p.id}">${p.name} (${p.model}) - R$ ${p.price.toFixed(2)}</option>`;
+        }
+    });
+};
+
+window.addPartToOrder = function() {
+    const partId = document.getElementById('orderPartSelector').value;
+    if (!partId) return;
+    const part = mockParts.find(p => p.id === partId);
+    if (!part) return;
+
+    currentUsedParts.push({ id: part.id, name: part.name, price: part.price });
+    window.renderOrderUsedParts();
+    window.calculateOrderTotal();
+    document.getElementById('orderPartSelector').value = '';
+};
+
+window.removePartFromOrder = function(index) {
+    currentUsedParts.splice(index, 1);
+    window.renderOrderUsedParts();
+    window.calculateOrderTotal();
+};
+
+window.renderOrderUsedParts = function() {
+    const list = document.getElementById('orderUsedPartsList');
+    if (!list) return;
+    list.innerHTML = '';
+    let total = 0;
+
+    currentUsedParts.forEach((p, index) => {
+        total += p.price;
+        const li = document.createElement('li');
+        li.style = "display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border-radius: 6px; font-size: 14px; border: 1px solid var(--border);";
+        li.innerHTML = `
+            <span>${p.name} - <b>R$ ${p.price.toFixed(2)}</b></span>
+            <button onclick="removePartFromOrder(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        `;
+        list.appendChild(li);
+    });
+
+    document.getElementById('orderPartsTotal').value = total.toFixed(2);
+};
+
+window.calculateOrderTotal = function() {
+    const labor = parseFloat(document.getElementById('orderLaborPrice').value) || 0;
+    const parts = parseFloat(document.getElementById('orderPartsTotal').value) || 0;
+    const total = labor + parts;
+    document.getElementById('orderTotalDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+};
+
+// --- RELATÓRIO PDF TEXTO ---
+window.exportDetailedReport = function() {
+    let report = `RELATÓRIO DETALHADO RSTARK - ${new Date().toLocaleDateString('pt-BR')}\n`;
+    report += "------------------------------------------------------------\n\n";
+    
+    report += "RESUMO DE ORDENS DE SERVIÇO\n";
+    let lucroTotal = 0;
+    mockOrders.forEach(o => {
+        report += `[${o.displayId}] ${o.client}\n`;
+        report += ` - Aparelho: ${o.deviceModel || o.title}\n`;
+        report += ` - Mão de Obra: R$ ${(o.laborPrice || 0).toFixed(2)}\n`;
+        report += ` - Peças: R$ ${(o.partsTotal || 0).toFixed(2)}\n`;
+        report += ` - Total: R$ ${(o.finalValue || 0).toFixed(2)}\n`;
+        report += ` - Status: ${o.status}\n\n`;
+        if (o.status === "Entregue") lucroTotal += (o.finalValue || 0);
+    });
+    
+    report += `\n>> FATURAMENTO TOTAL CONCLUÍDO: R$ ${lucroTotal.toFixed(2)}\n`;
+    report += "------------------------------------------------------------\n\n";
+    
+    report += "ALERTAS DE ESTOQUE (PRODUTOS ESGOTADOS)\n";
+    const outOfStock = mockParts.filter(p => p.stock <= 0);
+    if (outOfStock.length === 0) {
+        report += "Tudo em dia! Nenhuma peça zerada.\n";
+    } else {
+        outOfStock.forEach(p => {
+            report += `⚠️ PRECISA COMPRAR: ${p.name} (Mod: ${p.model})\n`;
+        });
+    }
+    
+    report += "\n\nObrigado por usar o sistema Rstark.";
+
+    // Gera o Download como arquivo de texto detalhado
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Relatorio_Detalhado_Rstark_${Date.now()}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    alert("Relatório gerado e baixado como arquivo de texto detalhado!");
+};
+
+// Substituir o botão de relatório original para chamar o novo
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const reportBtn = document.querySelector('.action-btn[data-auth="adm"]');
+        if (reportBtn) {
+            reportBtn.setAttribute('onclick', 'exportDetailedReport()');
+        }
+    }, 1500);
 });

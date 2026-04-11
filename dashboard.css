@@ -711,6 +711,51 @@ body.dark-mode {
     --border: #334155;
 }
 
+/* Status Badges Específicos para Estoque */
+.status-badge.out-of-stock {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Ajustes para a lista de peças no modal de OS */
+#orderUsedPartsList li {
+    transition: all 0.2s ease;
+}
+
+#orderUsedPartsList li:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+#orderTotalDisplay {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 8px;
+    margin-left: 8px;
+}
+
+.dark-mode #orderUsedPartsList li {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+.dark-mode #orderTotalDisplay {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.dark-mode #orderUsedPartsList li:hover {
+    background: #334155 !important;
+}
+
 /* Responsive Dashboard */
 @media (max-width: 1024px) {
     .dashboard-layout {
