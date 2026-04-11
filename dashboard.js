@@ -391,6 +391,10 @@ window.openOrderModal = function() {
     document.getElementById('newClientName').value = '';
     document.getElementById('newClientPhone').value = '';
     document.getElementById('newClientEmail').value = '';
+    document.getElementById('newClientCEP').value = '';
+    document.getElementById('newClientAddress').value = '';
+    document.getElementById('newClientNumber').value = '';
+    document.getElementById('newClientComplement').value = '';
 
     document.getElementById('orderModal').classList.add('active');
 };
@@ -434,9 +438,20 @@ window.saveOrder = async function() {
             return;
         }
 
+        clientNameFinal = name;
+        
+        // Novos campos detalhados
+        const cep = document.getElementById('newClientCEP').value;
+        const address = document.getElementById('newClientAddress').value;
+        const number = document.getElementById('newClientNumber').value;
+        const complement = document.getElementById('newClientComplement').value;
+
         try {
             await db.collection('clients').add({
-                name, email, phone, status: 'Ativo', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                name, email, phone, 
+                cep, address, number, complement,
+                status: 'Ativo', 
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             clientNameFinal = name;
         } catch (error) {
@@ -615,11 +630,21 @@ window.deleteOrder = async function(id) {
 };
 
 // Global Clientes CRUD 
-window.openClientModal = function() {
-    document.getElementById('clientId').value = '';
     document.getElementById('clientName').value = '';
     document.getElementById('clientEmail').value = '';
     document.getElementById('clientPhone').value = '';
+    document.getElementById('clientPhoneResidential').value = '';
+    
+    // Novo: Reset campos de endereço
+    document.getElementById('clientCEP').value = '';
+    document.getElementById('clientAddress').value = '';
+    document.getElementById('clientNumber').value = '';
+    document.getElementById('clientComplement').value = '';
+    
+    // Novo: Reset Toggle de Telefone
+    document.getElementById('residentialPhoneGroup').style.display = 'none';
+    document.getElementById('btnAddResidential').innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar Telefone Residencial`;
+
     document.getElementById('clientStatus').value = 'Ativo';
     document.getElementById('clientModalTitle').innerText = 'Novo Cliente';
     document.getElementById('clientModal').classList.add('active');
@@ -634,6 +659,11 @@ window.saveClient = async function() {
     const name = document.getElementById('clientName').value;
     const email = document.getElementById('clientEmail').value;
     const phone = document.getElementById('clientPhone').value;
+    const phoneResidential = document.getElementById('clientPhoneResidential').value;
+    const cep = document.getElementById('clientCEP').value;
+    const address = document.getElementById('clientAddress').value;
+    const number = document.getElementById('clientNumber').value;
+    const complement = document.getElementById('clientComplement').value;
     const status = document.getElementById('clientStatus').value;
 
     if (!name || !phone) {
@@ -645,12 +675,15 @@ window.saveClient = async function() {
         if (id) {
             // Edit
             await db.collection('clients').doc(id).update({
-                name, email, phone, status
+                name, email, phone, status,
+                phoneResidential, cep, address, number, complement
             });
         } else {
             // Create
             await db.collection('clients').add({
-                name, email, phone, status, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                name, email, phone, status, 
+                phoneResidential, cep, address, number, complement,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
         window.closeClientModal();
@@ -668,6 +701,22 @@ window.editClient = function(id) {
     document.getElementById('clientName').value = client.name || '';
     document.getElementById('clientEmail').value = client.email || '';
     document.getElementById('clientPhone').value = client.phone || '';
+    document.getElementById('clientPhoneResidential').value = client.phoneResidential || '';
+    
+    document.getElementById('clientCEP').value = client.cep || '';
+    document.getElementById('clientAddress').value = client.address || '';
+    document.getElementById('clientNumber').value = client.number || '';
+    document.getElementById('clientComplement').value = client.complement || '';
+    
+    // Verifica se tem telefone residencial para mostrar o campo
+    if (client.phoneResidential) {
+        document.getElementById('residentialPhoneGroup').style.display = 'block';
+        document.getElementById('btnAddResidential').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line></svg> Remover Telefone Residencial';
+    } else {
+        document.getElementById('residentialPhoneGroup').style.display = 'none';
+        document.getElementById('btnAddResidential').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar Telefone Residencial';
+    }
+
     document.getElementById('clientStatus').value = client.status || 'Ativo';
     
     document.getElementById('clientModalTitle').innerText = 'Editar Cliente';
@@ -1125,3 +1174,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1500);
 });
+
+// --- LÓGICA DE CEP E TELEFONE ---
+window.lookupCEP = function(cepValue, prefix) {
+    const cep = cepValue.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.erro) {
+                const addrField = prefix === 'client' ? 'clientAddress' : 'newClientAddress';
+                document.getElementById(addrField).value = data.logradouro;
+                
+                // Foca no número após preencher rua
+                const numField = prefix === 'client' ? 'clientNumber' : 'newClientNumber';
+                document.getElementById(numField).focus();
+            }
+        })
+        .catch(err => console.error("Erro ao buscar CEP:", err));
+};
+
+window.toggleResidentialPhone = function(prefix) {
+    const group = document.getElementById('residentialPhoneGroup');
+    const btn = document.getElementById('btnAddResidential');
+    const isVisible = group.style.display === 'block';
+
+    if (isVisible) {
+        group.style.display = 'none';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar Telefone Residencial';
+        document.getElementById('clientPhoneResidential').value = '';
+    } else {
+        group.style.display = 'block';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line></svg> Remover Telefone Residencial';
+        document.getElementById('clientPhoneResidential').focus();
+    }
+};

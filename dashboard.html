@@ -423,10 +423,47 @@
                         <label>E-mail</label>
                         <input type="email" class="input-control" id="clientEmail" placeholder="Ex: joao@email.com">
                     </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.02); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
+                        <label style="font-weight: 600; margin-bottom: 12px; display: block; font-size: 14px;">Endereço Completo</label>
+                        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label>CEP</label>
+                                <input type="text" class="input-control" id="clientCEP" placeholder="00000-000" onblur="lookupCEP(this.value, 'client')">
+                            </div>
+                            <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                                <label>Logradouro / Rua</label>
+                                <input type="text" class="input-control" id="clientAddress" placeholder="Rua, Avenida...">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label>Número</label>
+                                <input type="text" class="input-control" id="clientNumber" placeholder="Ex: 123">
+                            </div>
+                            <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                                <label>Complemento</label>
+                                <input type="text" class="input-control" id="clientComplement" placeholder="Bloco, Apto, Fundos...">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label>Telefone</label>
+                        <label>Telefone Celular (WhatsApp)</label>
                         <input type="text" class="input-control" id="clientPhone" placeholder="(00) 00000-0000">
                     </div>
+
+                    <div id="residentialPhoneGroup" style="display: none; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label>Telefone Residencial / Fixo</label>
+                            <input type="text" class="input-control" id="clientPhoneResidential" placeholder="(00) 0000-0000">
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="btnAddResidential" onclick="toggleResidentialPhone('client')" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 4px; margin-bottom: 20px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Adicionar Telefone Residencial
+                    </button>
                     <div class="form-group">
                         <label>Status</label>
                         <select class="input-control" id="clientStatus">
@@ -473,12 +510,35 @@
                             <input type="text" class="input-control" id="newClientName" placeholder="Ex: João da Silva">
                         </div>
                         <div class="form-group">
-                            <label>Telefone</label>
+                            <label>Telefone Celular</label>
                             <input type="text" class="input-control" id="newClientPhone" placeholder="(00) 00000-0000">
                         </div>
                         <div class="form-group">
                             <label>E-mail (opcional)</label>
                             <input type="email" class="input-control" id="newClientEmail" placeholder="Ex: joao@email.com">
+                        </div>
+
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                            <div style="display: flex; gap: 8px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>CEP</label>
+                                    <input type="text" class="input-control" id="newClientCEP" onblur="lookupCEP(this.value, 'new')">
+                                </div>
+                                <div class="form-group" style="flex: 2;">
+                                    <label>Endereço</label>
+                                    <input type="text" class="input-control" id="newClientAddress">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Nº</label>
+                                    <input type="text" class="input-control" id="newClientNumber">
+                                </div>
+                                <div class="form-group" style="flex: 2;">
+                                    <label>Complemento</label>
+                                    <input type="text" class="input-control" id="newClientComplement">
+                                </div>
+                            </div>
                         </div>
                     </div>
 

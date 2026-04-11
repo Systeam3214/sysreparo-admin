@@ -756,6 +756,18 @@ body.dark-mode {
     background: #334155 !important;
 }
 
+/* Ajustes de formulários compactos para endereço */
+#newClientSection .form-group label,
+#clientModal .modal-body label {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.input-control::placeholder {
+    color: #94a3b8;
+    opacity: 0.6;
+}
+
 /* Responsive Dashboard */
 @media (max-width: 1024px) {
     .dashboard-layout {
