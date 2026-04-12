@@ -460,7 +460,7 @@ window.saveOrder = async function() {
         const email = document.getElementById('newClientEmail').value;
 
         if (!name || !phone) {
-            alert('Nome e telefone do cliente são obrigatórios!');
+            showMessage('Nome e telefone do cliente são obrigatórios!', 'Atenção');
             return;
         }
 
@@ -482,14 +482,14 @@ window.saveOrder = async function() {
             clientNameFinal = name;
         } catch (error) {
             console.error(error);
-            alert("Falha de rede salvando cliente. Verifique as regras do Firestore.");
+            showMessage("Falha de rede salvando cliente. Verifique as regras do Firestore.", "Erro de Conexão");
             return;
         }
 
     } else {
         const selected = document.getElementById('orderClientSelect').value;
         if (!selected) {
-            alert('Por favor, selecione um cliente na lista ou inicie um Novo Cadastro.');
+            showMessage('Por favor, selecione um cliente na lista ou inicie um Novo Cadastro.', 'Seleção Necessária');
             return;
         }
         clientNameFinal = selected;
@@ -505,7 +505,7 @@ window.saveOrder = async function() {
     const finalTotal = laborPrice + partsTotal;
 
     if (!deviceModel) {
-        alert('Por favor, insira a Marca e Modelo do aparelho.');
+        showMessage('Por favor, insira a Marca e Modelo do aparelho.', 'Dados Incompletos');
         return;
     }
     
@@ -584,7 +584,7 @@ window.saveOrder = async function() {
         if (emitBtn) emitBtn.innerText = "Emitir Ordem";
     } catch (error) {
         console.error(error);
-        alert("Erro no servidor ao salvar a emissão. Verifique as permissões de acesso (Firestore rules).");
+        showMessage("Erro no servidor ao salvar a emissão. Verifique as permissões de acesso (Firestore rules).", "Erro no Sistema");
         const emitBtn = document.querySelector('.modal-footer .primary');
         if (emitBtn) emitBtn.innerText = "Emitir Ordem";
     }
@@ -650,7 +650,7 @@ window.deleteOrder = async function(id) {
             await db.collection('orders').doc(id).delete();
         } catch(e) {
             console.error(e);
-            alert("Falha ao tentar excluir a Ordem de Serviço.");
+            showMessage("Falha ao tentar excluir a Ordem de Serviço.", "Erro");
         }
     });
 };
@@ -695,7 +695,7 @@ window.saveClient = async function() {
     const status = document.getElementById('clientStatus').value;
 
     if (!name || !phone) {
-        alert('Nome e Telefone são obrigatórios!');
+        showMessage('Nome e Telefone são obrigatórios!', 'Atenção');
         return;
     }
 
@@ -717,7 +717,7 @@ window.saveClient = async function() {
         window.closeClientModal();
     } catch(e) {
         console.error(e);
-        alert("Erro configurando dados na nuvem.");
+        showMessage("Erro configurando dados na nuvem.", "Erro");
     }
 };
 
@@ -757,7 +757,7 @@ window.deleteClient = async function(id) {
             await db.collection('clients').doc(id).delete();
         } catch(e) {
             console.error(e);
-            alert("Houve um erro para deletar na nuvem.");
+            showMessage("Houve um erro para deletar na nuvem.", "Erro");
         }
     });
 };
@@ -789,6 +789,45 @@ window.showConfirm = function(message, onConfirm) {
 
     confirmBtn.addEventListener('click', handleConfirm);
     cancelBtn.addEventListener('click', handleCancel);
+};
+
+// --- FUNÇÃO GLOBAL DE MENSAGEM (ALERT CUSTOMIZADO) ---
+window.showMessage = function(message, title = 'Aviso', onOk = null) {
+    const modal = document.getElementById('confirmModal');
+    const titleEl = document.getElementById('confirmModalTitle');
+    const msgEl = document.getElementById('confirmModalMessage');
+    const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+    const cancelBtn = document.getElementById('confirmModalCancelBtn');
+
+    titleEl.innerText = title;
+    msgEl.innerText = message;
+    
+    // Configura para modo Alerta
+    cancelBtn.style.display = 'none';
+    confirmBtn.innerText = 'OK';
+    confirmBtn.className = 'action-btn primary';
+    
+    modal.classList.add('active');
+
+    const handleOk = () => {
+        cleanup();
+        if (onOk) onOk();
+    };
+
+    const cleanup = () => {
+        modal.classList.remove('active');
+        confirmBtn.removeEventListener('click', handleOk);
+        
+        // Restaura padrão do confirmModal para o próximo uso
+        setTimeout(() => {
+            cancelBtn.style.display = 'block';
+            confirmBtn.innerText = 'Confirmar';
+            confirmBtn.className = 'action-btn danger';
+            titleEl.innerText = 'Atenção';
+        }, 300);
+    };
+
+    confirmBtn.addEventListener('click', handleOk);
 };
 
 window.handleStatusChange = function() {
@@ -889,7 +928,7 @@ window.activateWarranty = function(id) {
             });
         } catch(e) {
             console.error(e);
-            alert("Erro ao acionar garantia.");
+            showMessage("Erro ao acionar garantia.", "Erro");
         }
     });
 };
@@ -914,7 +953,7 @@ window.saveStaff = async function() {
     const tag = document.getElementById('staffTag').value;
 
     if (!name || !email || !password) {
-        alert("Todos os campos são obrigatórios!");
+        showMessage("Todos os campos são obrigatórios!", "Atenção");
         return;
     }
 
@@ -937,11 +976,11 @@ window.saveStaff = async function() {
         });
 
         await secondaryApp.delete();
-        alert("Funcionário cadastrado com sucesso!");
+        showMessage("Funcionário cadastrado com sucesso!", "Sucesso");
         closeStaffModal();
     } catch (e) {
         console.error(e);
-        alert("Erro ao criar funcionário: " + e.message);
+        showMessage("Erro ao criar funcionário: " + e.message, "Erro");
     } finally {
         btn.innerText = "Criar Acesso";
         btn.disabled = false;
@@ -979,17 +1018,16 @@ window.renderStaffTable = function() {
 
 window.deleteStaff = function(uid, email) {
     if (email === 'rstarkadm@gmail.com') {
-        alert("A conta master não pode ser removida!");
+        showMessage("A conta master não pode ser removida!", "Privilégio Negado");
         return;
     }
     showConfirm(`Deseja remover o acesso de ${email}?`, async () => {
         try {
             await db.collection('users').doc(uid).delete();
-            // Nota: O usuário ainda existirá no Auth do Firebase, mas não terá mais tag/permissão no sistema
-            alert("Acesso revogado!");
+            showMessage("Acesso revogado!", "Sucesso");
         } catch(e) {
             console.error(e);
-            alert("Erro ao remover.");
+            showMessage("Erro ao remover.", "Erro");
         }
     });
 };
@@ -1061,7 +1099,7 @@ window.savePart = async function() {
     const stock = parseInt(document.getElementById('partStock').value) || 0;
 
     if (!name || !model) {
-        alert("Nome e Modelo são obrigatórios!");
+        showMessage("Nome e Modelo são obrigatórios!", "Atenção");
         return;
     }
 
@@ -1073,7 +1111,8 @@ window.savePart = async function() {
         }
         window.closePartModal();
     } catch(e) {
-        alert("Erro ao salvar peça.");
+        console.error(e);
+        showMessage("Erro ao salvar peça.", "Erro");
     }
 };
 
@@ -1194,7 +1233,7 @@ window.exportDetailedReport = function() {
     a.download = `Relatorio_Detalhado_Rstark_${Date.now()}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
-    alert("Relatório gerado e baixado como arquivo de texto detalhado!");
+    showMessage("Relatório gerado e baixado como arquivo de texto detalhado!", "Relatório Pronto");
 };
 
 // Substituir o botão de relatório original para chamar o novo
