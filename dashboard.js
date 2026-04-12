@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetSec) {
             targetSec.classList.add('active');
         }
+
+        // Fecha menu mobile se estiver aberto
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('mobileMenuOverlay');
+        if (sidebar) sidebar.classList.remove('menu-open');
+        if (overlay) overlay.classList.remove('active');
     }
 
     navLinks.forEach(link => {
@@ -76,6 +82,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.classList.remove('dark-mode');
             }
         });
+    }
+
+    // --- MENU MOBILE ---
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarHeader = document.querySelector('.sidebar-header');
+    const overlay = document.getElementById('mobileMenuOverlay');
+
+    function toggleMobileMenu() {
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.toggle('menu-open');
+            overlay.classList.toggle('active');
+        }
+    }
+
+    if (sidebarHeader) {
+        sidebarHeader.addEventListener('click', toggleMobileMenu);
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', toggleMobileMenu);
     }
 
     // Filtros de OS

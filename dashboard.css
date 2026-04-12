@@ -773,27 +773,102 @@ body.dark-mode {
     .dashboard-layout {
         flex-direction: column;
     }
-    .sidebar {
+
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        padding: 16px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-menu-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: 72px; /* Header height */
+        padding: 12px 20px;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+        z-index: 1001;
+        transition: height 0.3s ease;
+        overflow: visible; /* Needed for the drawer to slide out below */
     }
+
     .sidebar-header {
         margin-bottom: 0;
+        cursor: pointer;
+        padding: 12px 0;
     }
+
+    .sidebar-header .logo-badge {
+        width: 40px;
+        height: 40px;
+    }
+
     .nav-links {
-        display: none; /* Em um app real, teria um menu hamburguer */
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: -280px; /* Start off-screen */
+        width: 280px;
+        height: 100vh;
+        background: linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%);
+        padding: 80px 20px 20px 20px; /* Space for the header */
+        z-index: 1002;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
     }
+
+    .sidebar.menu-open .nav-links {
+        left: 0;
+    }
+
     .user-profile {
         padding-top: 0;
         border-top: none;
+        position: relative;
+        z-index: 1003;
     }
+
+    .main-content {
+        padding: 24px 20px;
+        margin-top: 0; /* Remove offset since header is no longer fixed */
+    }
+
     .sidebar .circle-decoration {
         display: none;
     }
+
     .dashboard-grid {
         grid-template-columns: 1fr;
+    }
+
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .action-btn {
+        flex: 1;
+        justify-content: center;
     }
 }
