@@ -871,4 +871,42 @@ body.dark-mode {
         flex: 1;
         justify-content: center;
     }
+
+    /* Table Optimizations for Mobile */
+    .data-table thead th.desktop-date-column,
+    .data-table tbody td.desktop-date-column {
+        display: none;
+    }
+
+    .mobile-date-info {
+        display: block !important;
+    }
+
+    .data-table th, .data-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .table-actions {
+        gap: 12px;
+    }
+
+    .icon-btn {
+        padding: 10px; /* Larger hit area for mobile */
+        background: var(--bg-light);
+        border-radius: 8px;
+    }
+
+    /* Fixed width for actions column to prevent squishing */
+    .data-table th:last-child, 
+    .data-table td:last-child {
+        width: 100px;
+        text-align: right;
+    }
+
+    /* Prevent text wrapping in critical columns */
+    .status-badge {
+        white-space: nowrap;
+        padding: 4px 8px;
+    }
 }

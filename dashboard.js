@@ -274,21 +274,34 @@ window.renderOrdersTable = function(filter = 'Todos') {
 
     filtered.forEach(order => {
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = (e) => {
+            if (!e.target.closest('.table-actions')) editOrder(order.id);
+        };
+
+        const exitDateStr = order.exitDate?.toDate ? order.exitDate.toDate().toLocaleDateString('pt-BR') : (order.exitDate instanceof Date ? order.exitDate.toLocaleDateString('pt-BR') : '');
+
         tr.innerHTML = `
             <td>
                 <div style="font-weight: 500; color: var(--text-main);">${order.title}</div>
                 <div style="font-size: 13px; color: var(--text-muted);">${order.displayId || 'OS-Cloud'}</div>
+                <div class="mobile-date-info" style="display: none; font-size: 11px; color: var(--primary); margin-top: 4px; font-weight: 500;">
+                    E: ${order.date} ${exitDateStr ? ` | S: ${exitDateStr}` : ''}
+                </div>
             </td>
             <td>${order.client}</td>
             <td><span class="status-badge ${getBadgeClass(order.status)}">${order.status}</span></td>
-            <td>${order.date}</td>
+            <td class="desktop-date-column">
+                <div style="font-size: 13px;">${order.date}</div>
+                ${exitDateStr ? `<div style="font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px;">S: ${exitDateStr}</div>` : ''}
+            </td>
             <td>
                 <div class="table-actions">
-                    <button class="icon-btn edit" onclick="editOrder('${order.id}')" title="Editar Status/Detalhes">
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editOrder('${order.id}')" title="Editar Status/Detalhes">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     ${currentUserTag === 'adm' ? `
-                    <button class="icon-btn delete" onclick="deleteOrder('${order.id}')" title="Excluir OS">
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOrder('${order.id}')" title="Excluir OS">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     ` : ''}
@@ -311,6 +324,11 @@ window.renderClientsTable = function() {
     mockClients.forEach(client => {
         const badgeClass = client.status === 'Ativo' ? 'completed' : 'pending';
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = (e) => {
+            if (!e.target.closest('.table-actions')) editClient(client.id);
+        };
+
         tr.innerHTML = `
             <td style="font-weight: 500; color: var(--text-main);">${client.name}</td>
             <td>
@@ -320,11 +338,11 @@ window.renderClientsTable = function() {
             <td><span class="status-badge ${badgeClass}">${client.status || 'Ativo'}</span></td>
             <td>
                 <div class="table-actions">
-                    <button class="icon-btn edit" onclick="editClient('${client.id}')" title="Editar">
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editClient('${client.id}')" title="Editar">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     ${currentUserTag === 'adm' ? `
-                    <button class="icon-btn delete" onclick="deleteClient('${client.id}')" title="Excluir">
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deleteClient('${client.id}')" title="Excluir">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     ` : ''}
@@ -1055,20 +1073,32 @@ function renderPartsTable() {
 
     mockParts.forEach(part => {
         const isOutOfStock = (part.stock || 0) <= 0;
-        const stockHtml = isOutOfStock 
-            ? `<span style="color: #ef4444; font-weight: 600;">⚠️ Reposição (Comprar!)</span>`
-            : `<span>${part.stock} un.</span>`;
-
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = (e) => {
+            if (!e.target.closest('.table-actions')) editPart(part.id);
+        };
+
         tr.innerHTML = `
-            <td><div style="font-weight: 500;">${part.name}</div></td>
+            <td>
+                <div style="font-weight: 500;">${part.name}</div>
+                <div class="mobile-date-info" style="display: none; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    ${part.model} | R$ ${(part.price || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+            </td>
             <td>${part.model}</td>
             <td>R$ ${(part.price || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-            <td>${stockHtml}</td>
+            <td>
+                <span class="status-badge ${isOutOfStock ? 'pending' : 'completed'}">
+                    ${part.stock || 0} un.
+                </span>
+            </td>
             <td>
                 <div class="table-actions">
-                    <button class="icon-btn edit" onclick="editPart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                    <button class="icon-btn delete" onclick="deletePart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editPart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                    ${currentUserTag === 'adm' ? `
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deletePart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    ` : ''}
                 </div>
             </td>
         `;
