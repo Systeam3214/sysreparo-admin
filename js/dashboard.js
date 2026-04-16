@@ -26,14 +26,14 @@ function maskPhone(v) {
     v = v.replace(/\D/g, "");
     if (v.length > 11) v = v.substring(0, 11);
     v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
     return v;
 }
 
 function maskCEP(v) {
     v = v.replace(/\D/g, "");
     if (v.length > 8) v = v.substring(0, 8);
-    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    v = v.replace(/^(\d{5})(\d)/, "$1-$2");
     return v;
 }
 
@@ -717,6 +717,12 @@ window.editOrder = function(id) {
     }
     clientSelect.value = order.client;
 
+    // Garante máscaras nos campos de novos clientes se estiverem abertos
+    const newPhone = document.getElementById('newClientPhone');
+    if (newPhone) newPhone.value = maskPhone(newPhone.value);
+    const newCEP = document.getElementById('newClientCEP');
+    if (newCEP) newCEP.value = maskCEP(newCEP.value);
+
     isCreatingNewClientInsideOrder = false;
     document.getElementById('newClientSection').style.display = 'none';
 
@@ -847,10 +853,10 @@ window.editClient = function(id) {
     document.getElementById('clientId').value = client.id;
     document.getElementById('clientName').value = client.name || '';
     document.getElementById('clientEmail').value = client.email || '';
-    document.getElementById('clientPhone').value = client.phone || '';
-    document.getElementById('clientPhoneResidential').value = client.phoneResidential || '';
+    document.getElementById('clientPhone').value = maskPhone(client.phone || '');
+    document.getElementById('clientPhoneResidential').value = maskPhone(client.phoneResidential || '');
     
-    document.getElementById('clientCEP').value = client.cep || '';
+    document.getElementById('clientCEP').value = maskCEP(client.cep || '');
     document.getElementById('clientAddress').value = client.address || '';
     document.getElementById('clientNumber').value = client.number || '';
     document.getElementById('clientComplement').value = client.complement || '';
