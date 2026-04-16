@@ -21,6 +21,44 @@ let currentFilter = 'Todos';
 let currentUserTag = 'worker'; // Global para controle de UI dinâmica
 let currentUsedParts = []; // Lista temporária para o modal de OS
 
+// --- AUXILIARES DE MÁSCARA ---
+function maskPhone(v) {
+    v = v.replace(/\D/g, "");
+    if (v.length > 11) v = v.substring(0, 11);
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    return v;
+}
+
+function maskCEP(v) {
+    v = v.replace(/\D/g, "");
+    if (v.length > 8) v = v.substring(0, 8);
+    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+    return v;
+}
+
+function applyMasks() {
+    const phoneInputs = ['clientPhone', 'clientPhoneResidential', 'newClientPhone'];
+    phoneInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', (e) => {
+                e.target.value = maskPhone(e.target.value);
+            });
+        }
+    });
+
+    const cepInputs = ['clientCEP', 'newClientCEP'];
+    cepInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', (e) => {
+                e.target.value = maskCEP(e.target.value);
+            });
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- NAVEGAÇÃO DO SIDEBAR ---
     const navLinks = document.querySelectorAll('.nav-links a');
@@ -124,7 +162,42 @@ document.addEventListener('DOMContentLoaded', () => {
             setupFirebaseListeners();
         }
     });
+
+    applyMasks();
 });
+
+// --- LÓGICA DE BUSCA GLOBAL ---
+window.filterOrders = function(query) {
+    const q = query.toLowerCase();
+    const tableBody = document.getElementById('ordersTableBody');
+    if (!tableBody) return;
+    
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+};
+
+window.filterClients = function(query) {
+    const q = query.toLowerCase();
+    const tableBody = document.getElementById('clientsTableBody');
+    if (!tableBody) return;
+
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+};
 
 async function checkPermissions(user) {
     let userTag = 'worker';
@@ -262,7 +335,15 @@ window.renderOrdersTable = function(filter = 'Todos') {
     const filtered = filter === 'Todos' ? mockOrders : mockOrders.filter(o => o.status === filter);
 
     if (filtered.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">Nenhuma ordem encontrada no banco de dados.</td></tr>`;
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 0;">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" style="opacity: 0.2;"><path d="M14 2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span>Nenhuma ordem de serviço encontrada.</span>
+                    </div>
+                </td>
+            </tr>`;
         return;
     }
 
@@ -294,6 +375,9 @@ window.renderOrdersTable = function(filter = 'Todos') {
                     <button class="icon-btn edit" onclick="event.stopPropagation(); editOrder('${order.id}')" title="Editar Status/Detalhes">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
+                    <button class="icon-btn print" onclick="event.stopPropagation(); printOS('${order.id}')" title="Imprimir Comprovante">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    </button>
                     ${currentUserTag === 'adm' ? `
                     <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOrder('${order.id}')" title="Excluir OS">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -311,7 +395,15 @@ window.renderClientsTable = function() {
     if (!clientsTableBody) return;
     clientsTableBody.innerHTML = '';
     if (mockClients.length === 0) {
-        clientsTableBody.innerHTML = `<tr><td colspan="4" class="empty-state">Nenhum cliente encontrado no banco de dados.</td></tr>`;
+        clientsTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty-state">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 0;">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" style="opacity: 0.2;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Nenhum cliente cadastrado ainda.</span>
+                    </div>
+                </td>
+            </tr>`;
         return;
     }
 
@@ -402,6 +494,7 @@ window.openOrderModal = function() {
     document.getElementById('orderTotalDisplay').innerText = 'R$ 0,00';
     document.getElementById('orderFinalValue').value = '0';
     document.getElementById('orderEstimatedValue').value = '0';
+    document.getElementById('orderEstimatedDate').value = '';
     
     currentUsedParts = [];
     window.renderOrderUsedParts();
@@ -527,6 +620,7 @@ window.saveOrder = async function() {
 
     const orderId = document.getElementById('orderId').value;
     const statusVal = document.getElementById('orderStatus').value;
+    const estimatedDate = document.getElementById('orderEstimatedDate').value;
 
     const device = `${deviceType} ${deviceModel} (SN: ${deviceSerial})`;
 
@@ -557,6 +651,7 @@ window.saveOrder = async function() {
                 finalValue: finalTotal,
                 estimatedValue: finalTotal, // Simplificado para usar o total
                 exitDate: exitDate,
+                estimatedDate: estimatedDate,
                 usedParts: currentUsedParts
             });
 
@@ -584,6 +679,7 @@ window.saveOrder = async function() {
                 laborPrice, partsTotal,
                 finalValue: finalTotal,
                 estimatedValue: finalTotal,
+                estimatedDate: estimatedDate,
                 exitDate: null,
                 usedParts: currentUsedParts
             });
@@ -651,6 +747,7 @@ window.editOrder = function(id) {
     window.calculateOrderTotal();
     
     document.getElementById('orderStatus').value = order.status || 'Aguardando Análise';
+    document.getElementById('orderEstimatedDate').value = order.estimatedDate || '';
     document.getElementById('orderStatusGroup').style.display = 'block';
     document.getElementById('orderModal').querySelector('h2').innerText = `Editar Ordem: ${order.displayId}`;
     document.getElementById('orderModal').classList.add('active');
@@ -712,6 +809,11 @@ window.saveClient = async function() {
     }
 
     try {
+        const saveBtn = document.querySelector('#clientModal .modal-footer .primary');
+        const originalText = saveBtn.innerText;
+        saveBtn.innerText = 'Salvando...';
+        saveBtn.disabled = true;
+
         if (id) {
             // Edit
             await db.collection('clients').doc(id).update({
@@ -727,9 +829,14 @@ window.saveClient = async function() {
             });
         }
         window.closeClientModal();
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
     } catch(e) {
         console.error(e);
         showMessage("Erro configurando dados na nuvem.", "Erro");
+        const saveBtn = document.querySelector('#clientModal .modal-footer .primary');
+        saveBtn.innerText = 'Salvar Cliente';
+        saveBtn.disabled = false;
     }
 };
 
@@ -917,9 +1024,14 @@ function renderFinancialTable() {
                     : '<span class="status-badge" style="background: #f3f4f6; color: #9ca3af;">Expirada</span>'}
             </td>
             <td>
-                <button class="action-btn" onclick="activateWarranty('${order.id}')" style="padding: 4px 8px; font-size: 12px;">
-                    Retorno / Garantia
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn" onclick="activateWarranty('${order.id}')" style="padding: 4px 8px; font-size: 12px;">
+                        Retorno
+                    </button>
+                    <button class="icon-btn print" onclick="printOS('${order.id}')" title="Imprimir" style="padding: 4px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    </button>
+                </div>
             </td>
         `;
         tableBody.appendChild(tr);
@@ -1061,7 +1173,15 @@ function renderPartsTable() {
     tableBody.innerHTML = '';
 
     if (mockParts.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma peça cadastrada.</td></tr>`;
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 0;">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" style="opacity: 0.2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span>Estoque vazio. Adicione novas peças.</span>
+                    </div>
+                </td>
+            </tr>`;
         return;
     }
 
@@ -1128,15 +1248,25 @@ window.savePart = async function() {
     }
 
     try {
+        const saveBtn = document.querySelector('#partModal .modal-footer .primary');
+        const originalText = saveBtn.innerText;
+        saveBtn.innerText = 'Salvando...';
+        saveBtn.disabled = true;
+
         if (id) {
             await db.collection('parts').doc(id).update({ name, model, price, stock });
         } else {
             await db.collection('parts').add({ name, model, price, stock, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
         }
         window.closePartModal();
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
     } catch(e) {
         console.error(e);
         showMessage("Erro ao salvar peça.", "Erro");
+        const saveBtn = document.querySelector('#partModal .modal-footer .primary');
+        saveBtn.innerText = 'Salvar Peça';
+        saveBtn.disabled = false;
     }
 };
 
@@ -1304,4 +1434,85 @@ window.toggleResidentialPhone = function(prefix) {
         btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line></svg> Remover Telefone Residencial';
         document.getElementById('clientPhoneResidential').focus();
     }
+};
+
+window.printOS = function(id) {
+    const order = mockOrders.find(o => o.id === id);
+    if (!order) return;
+
+    const printContainer = document.getElementById('print-container');
+    const partsHtml = (order.usedParts || []).map(p => `
+        <tr>
+            <td>${p.name}</td>
+            <td>R$ ${p.price.toFixed(2)}</td>
+        </tr>
+    `).join('');
+
+    const entryDate = order.date;
+    const estDate = order.estimatedDate ? new Date(order.estimatedDate + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não informada';
+
+    printContainer.innerHTML = `
+        <div class="print-header">
+            <div class="print-logo">
+                <h1>Rstark Assistência Técnica</h1>
+                <p>Especializada em TVs, Monitores e Notebooks</p>
+                <p>contato@rstark.com | (00) 00000-0000</p>
+            </div>
+            <div class="print-os-info">
+                <h2>COMPROVANTE DE OS</h2>
+                <div style="font-size: 24px; font-weight: 800; color: #1e3a8a;">${order.displayId}</div>
+                <div style="font-size: 14px; margin-top: 5px;">Data de Entrada: ${entryDate}</div>
+            </div>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Dados do Cliente</div>
+            <div class="print-grid">
+                <div class="print-item"><label>Nome:</label><span>${order.client}</span></div>
+            </div>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Dados do Equipamento</div>
+            <div class="print-grid">
+                <div class="print-item"><label>Aparelho:</label><span>${order.deviceType} ${order.deviceModel}</span></div>
+                <div class="print-item"><label>Nº Série:</label><span>${order.deviceSerial || 'S/N'}</span></div>
+            </div>
+            <div class="print-item" style="margin-top: 10px;"><label>Defeito Reclamado:</label><span>${order.issue || 'Não descrito'}</span></div>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Serviços e Previsão</div>
+            <div class="print-grid">
+                <div class="print-item"><label>Status Atual:</label><span>${order.status}</span></div>
+                <div class="print-item"><label>Previsão de Entrega:</label><span>${estDate}</span></div>
+            </div>
+        </div>
+
+        ${order.usedParts && order.usedParts.length > 0 ? `
+        <div class="print-section">
+            <div class="print-section-title">Peças Utilizadas</div>
+            <table class="print-table">
+                <thead><tr><th>Descrição</th><th>Valor</th></tr></thead>
+                <tbody>${partsHtml}</tbody>
+            </table>
+        </div>
+        ` : ''}
+
+        <div class="print-total">
+            VALOR TOTAL ESTIMADO: R$ ${(order.finalValue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+        </div>
+
+        <div class="print-footer">
+            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">
+                Termos: A garantia de serviços é de 90 dias conforme CDC. Equipamentos não retirados em 90 dias após conclusão poderão ser descartados ou vendidos para custeio.
+            </p>
+            <div class="print-signature">
+                <div class="signature-box">Assinatura do Cliente</div>
+                <div class="signature-box">Rstark Assistência</div>
+            </div>
+        </div>
+    `;
+
+    window.print();
 };

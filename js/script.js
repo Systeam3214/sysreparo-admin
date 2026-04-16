@@ -53,10 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await auth.signInWithEmailAndPassword(emailVal, passVal);
             
             // Success State
-            submitBtn.classList.remove('loading');
             submitBtn.style.backgroundColor = '#10b981'; // Green success
-            btnSpan.style.opacity = '1';
-            btnSpan.textContent = 'Sucesso! Redirecionando...';
             
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
