@@ -378,6 +378,9 @@ window.renderOrdersTable = function(filter = 'Todos') {
                     <button class="icon-btn print" onclick="event.stopPropagation(); printOS('${order.id}')" title="Imprimir Comprovante">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     </button>
+                    <button class="icon-btn pdf" onclick="event.stopPropagation(); downloadOSPDF('${order.id}')" title="Baixar PDF">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </button>
                     ${currentUserTag === 'adm' ? `
                     <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOrder('${order.id}')" title="Excluir OS">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1037,6 +1040,9 @@ function renderFinancialTable() {
                     <button class="icon-btn print" onclick="printOS('${order.id}')" title="Imprimir" style="padding: 4px;">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     </button>
+                    <button class="icon-btn pdf" onclick="downloadOSPDF('${order.id}')" title="Baixar PDF" style="padding: 4px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </button>
                 </div>
             </td>
         `;
@@ -1442,9 +1448,9 @@ window.toggleResidentialPhone = function(prefix) {
     }
 };
 
-window.printOS = async function(id) {
+window.getOSPrintHTML = async function(id) {
     const order = mockOrders.find(o => o.id === id);
-    if (!order) return;
+    if (!order) return "";
 
     // Busca dados completos do cliente
     const clientData = mockClients.find(c => c.name === order.client) || {};
@@ -1493,8 +1499,7 @@ window.printOS = async function(id) {
     const now = new Date();
     const emissionDate = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
 
-    const printContainer = document.getElementById('print-container');
-    printContainer.innerHTML = `
+    return `
         <!-- CABEÇALHO -->
         <div class="print-header">
             <div class="print-logo">
@@ -1686,6 +1691,37 @@ window.printOS = async function(id) {
             Documento gerado automaticamente pelo sistema Rstark em ${emissionDate} — Comprovante válido como recibo de entrada/saída.
         </div>
     `;
+};
 
+window.printOS = async function(id) {
+    const html = await getOSPrintHTML(id);
+    if (!html) return;
+    const printContainer = document.getElementById('print-container');
+    printContainer.innerHTML = html;
     window.print();
+};
+
+window.downloadOSPDF = async function(id) {
+    const html = await getOSPrintHTML(id);
+    if (!html) return;
+    
+    const printContainer = document.getElementById('print-container');
+    printContainer.innerHTML = html;
+
+    const order = mockOrders.find(o => o.id === id);
+    const fileName = order ? `${order.displayId || 'OS'}_${order.client.replace(/\s+/g, '_')}.pdf` : 'OS.pdf';
+
+    const opt = {
+        margin: [10, 10],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Gera o PDF a partir do container de impressão
+    html2pdf().set(opt).from(printContainer).save().then(() => {
+        // Limpa após gerar se necessário (opcional)
+        // printContainer.innerHTML = '';
+    });
 };
