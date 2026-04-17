@@ -31,9 +31,7 @@ body {
 /* Brand Section (Left) */
 .brand-section {
     flex: 1;
-    background: linear-gradient(-45deg, #0f172a, #1e3a8a, #2563eb, #3b82f6, #1e40af);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
     color: white;
     padding: 60px;
     display: flex;
@@ -41,101 +39,6 @@ body {
     justify-content: center;
     position: relative;
     overflow: hidden;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    25% { background-position: 100% 0%; }
-    50% { background-position: 100% 100%; }
-    75% { background-position: 0% 100%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Floating Geometric Shapes */
-.floating-shapes {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.shape {
-    position: absolute;
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    animation: floatShape 20s ease-in-out infinite;
-}
-
-.shape-1 {
-    width: 80px;
-    height: 80px;
-    top: 10%;
-    left: 15%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    animation-duration: 18s;
-}
-
-.shape-2 {
-    width: 50px;
-    height: 50px;
-    top: 60%;
-    left: 70%;
-    transform: rotate(45deg);
-    background: rgba(255, 255, 255, 0.04);
-    animation-duration: 22s;
-    animation-delay: -3s;
-}
-
-.shape-3 {
-    width: 120px;
-    height: 120px;
-    top: 75%;
-    left: 10%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
-    animation-duration: 25s;
-    animation-delay: -5s;
-}
-
-.shape-4 {
-    width: 40px;
-    height: 40px;
-    top: 20%;
-    left: 75%;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    animation-duration: 16s;
-    animation-delay: -2s;
-}
-
-.shape-5 {
-    width: 65px;
-    height: 65px;
-    top: 45%;
-    left: 40%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    animation-duration: 20s;
-    animation-delay: -7s;
-}
-
-.shape-6 {
-    width: 35px;
-    height: 35px;
-    top: 85%;
-    left: 55%;
-    transform: rotate(30deg);
-    background: rgba(255, 255, 255, 0.05);
-    animation-duration: 14s;
-    animation-delay: -4s;
-}
-
-@keyframes floatShape {
-    0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
-    25% { transform: translateY(-30px) translateX(20px) rotate(90deg); }
-    50% { transform: translateY(-15px) translateX(-15px) rotate(180deg); }
-    75% { transform: translateY(-40px) translateX(10px) rotate(270deg); }
 }
 
 .brand-content {
@@ -181,32 +84,20 @@ body {
     z-index: 1;
 }
 
-
+/* Login Section (Right) */
+.login-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-white);
+    padding: 40px;
+}
 
 .login-wrapper {
     width: 100%;
     max-width: 420px;
     animation: fadeIn 0.8s ease forwards;
-}
-
-/* Greeting Header */
-.greeting-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-}
-
-.version-badge {
-    background: linear-gradient(135deg, var(--primary), #3b82f6);
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    animation: fadeIn 1.2s ease forwards;
 }
 
 @keyframes fadeIn {
@@ -217,30 +108,8 @@ body {
 .login-wrapper h2 {
     font-size: 28px;
     font-weight: 600;
+    margin-bottom: 8px;
     letter-spacing: -0.5px;
-}
-
-.login-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-white);
-    padding: 40px;
-}
-
-/* Footer */
-.login-footer {
-    margin-top: 40px;
-    text-align: center;
-    animation: fadeIn 1.5s ease forwards;
-}
-
-.login-footer p {
-    font-size: 12px;
-    color: var(--text-muted);
-    opacity: 0.7;
 }
 
 .subtitle {
