@@ -20,6 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSpan = submitBtn.querySelector('span');
     const rememberMe = document.getElementById('rememberMe');
 
+    // --- SAUDAÇÃO DINÂMICA ---
+    const greetingEl = document.getElementById('greetingText');
+    if (greetingEl) {
+        const hour = new Date().getHours();
+        let greeting = '';
+        if (hour >= 5 && hour < 12) {
+            greeting = 'Bom dia! ☀️';
+        } else if (hour >= 12 && hour < 18) {
+            greeting = 'Boa tarde! 🌤️';
+        } else {
+            greeting = 'Boa noite! 🌙';
+        }
+        greetingEl.textContent = greeting;
+    }
+
     // Toggle Password Visibility
     togglePasswordBtn.addEventListener('click', () => {
         const isPassword = passwordInput.getAttribute('type') === 'password';
