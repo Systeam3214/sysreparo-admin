@@ -1442,81 +1442,248 @@ window.toggleResidentialPhone = function(prefix) {
     }
 };
 
-window.printOS = function(id) {
+window.printOS = async function(id) {
     const order = mockOrders.find(o => o.id === id);
     if (!order) return;
 
+    // Busca dados completos do cliente
+    const clientData = mockClients.find(c => c.name === order.client) || {};
+    const clientPhone = clientData.phone ? maskPhone(clientData.phone) : '—';
+    const clientEmail = clientData.email || '—';
+    const clientAddress = [
+        clientData.address,
+        clientData.number ? `Nº ${clientData.number}` : '',
+        clientData.complement
+    ].filter(Boolean).join(', ') || '—';
+    const clientCEP = clientData.cep ? maskCEP(clientData.cep) : '—';
+
+    const entryDate = order.date || '—';
+    const estDate = order.estimatedDate 
+        ? new Date(order.estimatedDate + 'T12:00:00').toLocaleDateString('pt-BR') 
+        : 'Não informada';
+
+    const exitDateStr = order.exitDate?.toDate 
+        ? order.exitDate.toDate().toLocaleDateString('pt-BR') + ' ' + order.exitDate.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+        : (order.exitDate instanceof Date ? order.exitDate.toLocaleDateString('pt-BR') : '—');
+
+    const laborPrice = order.laborPrice || 0;
+    const partsTotal = order.partsTotal || 0;
+    const finalValue = order.finalValue || 0;
+
+    // Badge de status
+    let statusClass = 'pending';
+    if (order.status === 'Em Reparo') statusClass = 'progress';
+    else if (order.status === 'Pronto p/ Retirada') statusClass = 'ready';
+    else if (order.status === 'Entregue') statusClass = 'delivered';
+
+    // Peças usadas
+    const usedParts = order.usedParts || [];
+    let partsRowsHtml = '';
+    if (usedParts.length > 0) {
+        partsRowsHtml = usedParts.map((p, i) => `
+            <tr>
+                <td style="color:#64748b; width:30px;">${String(i + 1).padStart(2, '0')}</td>
+                <td>${p.name}</td>
+                <td class="col-qty">1</td>
+                <td class="col-price">R$ ${(p.price || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+    }
+
+    const now = new Date();
+    const emissionDate = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
+
     const printContainer = document.getElementById('print-container');
-    const partsHtml = (order.usedParts || []).map(p => `
-        <tr>
-            <td>${p.name}</td>
-            <td>R$ ${p.price.toFixed(2)}</td>
-        </tr>
-    `).join('');
-
-    const entryDate = order.date;
-    const estDate = order.estimatedDate ? new Date(order.estimatedDate + 'T12:00:00').toLocaleDateString('pt-BR') : 'Não informada';
-
     printContainer.innerHTML = `
+        <!-- CABEÇALHO -->
         <div class="print-header">
             <div class="print-logo">
-                <h1>Rstark Assistência Técnica</h1>
-                <p>Especializada em TVs, Monitores e Notebooks</p>
-                <p>contato@rstark.com | (00) 00000-0000</p>
+                <div class="print-logo-icon">
+                    <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <div class="print-logo-text">
+                    <h1>Rstark</h1>
+                    <p>Assistência Técnica Especializada</p>
+                    <p>TVs • Monitores • Notebooks • Home Theaters</p>
+                </div>
             </div>
-            <div class="print-os-info">
-                <h2>COMPROVANTE DE OS</h2>
-                <div style="font-size: 24px; font-weight: 800; color: #1e3a8a;">${order.displayId}</div>
-                <div style="font-size: 14px; margin-top: 5px;">Data de Entrada: ${entryDate}</div>
+            <div class="print-os-badge">
+                <div class="os-label">Ordem de Serviço</div>
+                <div class="os-number">${order.displayId || 'OS-0000'}</div>
+                <div class="os-date">Emitido em ${emissionDate}</div>
             </div>
         </div>
 
-        <div class="print-section">
+        <!-- BARRA DE INFO -->
+        <div class="print-info-bar">
+            <span>📞 (00) 00000-0000</span>
+            <span>✉️ contato@rstark.com</span>
+            <span>📍 Endereço da Empresa</span>
+        </div>
+
+        <!-- CLIENTE -->
+        <div class="print-section print-no-break">
             <div class="print-section-title">Dados do Cliente</div>
-            <div class="print-grid">
-                <div class="print-item"><label>Nome:</label><span>${order.client}</span></div>
+            <div class="print-card">
+                <div class="print-card-body">
+                    <div class="print-grid">
+                        <div class="print-field">
+                            <div class="print-field-label">Nome Completo</div>
+                            <div class="print-field-value">${order.client}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">Telefone / WhatsApp</div>
+                            <div class="print-field-value">${clientPhone}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">E-mail</div>
+                            <div class="print-field-value">${clientEmail}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">CEP</div>
+                            <div class="print-field-value">${clientCEP}</div>
+                        </div>
+                        <div class="print-field print-field-full">
+                            <div class="print-field-label">Endereço</div>
+                            <div class="print-field-value">${clientAddress}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="print-section">
+        <!-- EQUIPAMENTO -->
+        <div class="print-section print-no-break">
             <div class="print-section-title">Dados do Equipamento</div>
-            <div class="print-grid">
-                <div class="print-item"><label>Aparelho:</label><span>${order.deviceType} ${order.deviceModel}</span></div>
-                <div class="print-item"><label>Nº Série:</label><span>${order.deviceSerial || 'S/N'}</span></div>
+            <div class="print-card">
+                <div class="print-card-body">
+                    <div class="print-grid print-grid-3">
+                        <div class="print-field">
+                            <div class="print-field-label">Tipo</div>
+                            <div class="print-field-value">${order.deviceType || '—'}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">Marca / Modelo</div>
+                            <div class="print-field-value">${order.deviceModel || '—'}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">Nº de Série</div>
+                            <div class="print-field-value">${order.deviceSerial || 'S/N'}</div>
+                        </div>
+                    </div>
+                    <div class="print-grid">
+                        <div class="print-field print-field-full" style="border-bottom: none;">
+                            <div class="print-field-label">Defeito / Reclamação do Cliente</div>
+                            <div class="print-field-value">${order.issue || 'Não informado pelo cliente'}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="print-item" style="margin-top: 10px;"><label>Defeito Reclamado:</label><span>${order.issue || 'Não descrito'}</span></div>
         </div>
 
-        <div class="print-section">
-            <div class="print-section-title">Serviços e Previsão</div>
-            <div class="print-grid">
-                <div class="print-item"><label>Status Atual:</label><span>${order.status}</span></div>
-                <div class="print-item"><label>Previsão de Entrega:</label><span>${estDate}</span></div>
+        <!-- STATUS E DATAS -->
+        <div class="print-section print-no-break">
+            <div class="print-section-title">Acompanhamento</div>
+            <div class="print-card">
+                <div class="print-card-body">
+                    <div class="print-grid print-grid-3">
+                        <div class="print-field">
+                            <div class="print-field-label">Data de Entrada</div>
+                            <div class="print-field-value">${entryDate}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">Previsão de Entrega</div>
+                            <div class="print-field-value">${estDate}</div>
+                        </div>
+                        <div class="print-field">
+                            <div class="print-field-label">Status Atual</div>
+                            <div class="print-field-value"><span class="print-status-badge ${statusClass}">${order.status}</span></div>
+                        </div>
+                    </div>
+                    ${order.status === 'Entregue' ? `
+                    <div class="print-grid">
+                        <div class="print-field print-field-full" style="border-bottom: none;">
+                            <div class="print-field-label">Data de Saída / Entrega</div>
+                            <div class="print-field-value">${exitDateStr}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
         </div>
 
-        ${order.usedParts && order.usedParts.length > 0 ? `
-        <div class="print-section">
+        <!-- PEÇAS -->
+        ${usedParts.length > 0 ? `
+        <div class="print-section print-no-break">
             <div class="print-section-title">Peças Utilizadas</div>
-            <table class="print-table">
-                <thead><tr><th>Descrição</th><th>Valor</th></tr></thead>
-                <tbody>${partsHtml}</tbody>
-            </table>
+            <div class="print-card">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th>Descrição da Peça</th>
+                            <th class="col-qty">Qtd</th>
+                            <th class="col-price">Valor Unit.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${partsRowsHtml}
+                    </tbody>
+                </table>
+            </div>
         </div>
         ` : ''}
 
-        <div class="print-total">
-            VALOR TOTAL ESTIMADO: R$ ${(order.finalValue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+        <!-- RESUMO FINANCEIRO -->
+        <div class="print-section print-no-break">
+            <div class="print-section-title">Resumo Financeiro</div>
+            <div class="print-financial">
+                <div class="print-financial-row">
+                    <span class="label">Mão de Obra</span>
+                    <span class="value">R$ ${laborPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
+                <div class="print-financial-row">
+                    <span class="label">Peças e Componentes (${usedParts.length} ${usedParts.length === 1 ? 'item' : 'itens'})</span>
+                    <span class="value">R$ ${partsTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
+                <div class="print-financial-row total">
+                    <span class="label">VALOR TOTAL</span>
+                    <span class="value">R$ ${finalValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
+            </div>
         </div>
 
-        <div class="print-footer">
-            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">
-                Termos: A garantia de serviços é de 90 dias conforme CDC. Equipamentos não retirados em 90 dias após conclusão poderão ser descartados ou vendidos para custeio.
-            </p>
-            <div class="print-signature">
-                <div class="signature-box">Assinatura do Cliente</div>
-                <div class="signature-box">Rstark Assistência</div>
+        <!-- TERMOS E CONDIÇÕES -->
+        <div class="print-terms print-no-break">
+            <div class="print-terms-title">Termos e Condições</div>
+            <ol>
+                <li>A garantia dos serviços prestados é de <strong>90 (noventa) dias</strong> a partir da data de entrega, conforme Art. 26 do Código de Defesa do Consumidor (CDC).</li>
+                <li>A garantia <strong>não cobre</strong> danos causados por mau uso, quedas, líquidos, variação de tensão ou uso de acessórios incompatíveis.</li>
+                <li>Equipamentos não retirados no prazo de <strong>90 dias</strong> após a conclusão do serviço poderão ser descartados ou alienados para custeio do armazenamento.</li>
+                <li>O valor do orçamento é válido por <strong>15 dias</strong> a partir da data de emissão deste documento.</li>
+                <li>A Rstark não se responsabiliza por dados ou informações armazenadas no equipamento.</li>
+            </ol>
+        </div>
+
+        <!-- ASSINATURAS -->
+        <div class="print-signature-area print-no-break">
+            <div class="print-sig-box">
+                <div class="print-sig-line"></div>
+                <div class="print-sig-name">${order.client}</div>
+                <div class="print-sig-doc">CPF / RG do Cliente</div>
             </div>
+            <div class="print-sig-box">
+                <div class="print-sig-line"></div>
+                <div class="print-sig-name">Rstark Assistência Técnica</div>
+                <div class="print-sig-doc">Carimbo / Assinatura do Técnico</div>
+            </div>
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="print-page-footer">
+            Documento gerado automaticamente pelo sistema Rstark em ${emissionDate} — Comprovante válido como recibo de entrada/saída.
         </div>
     `;
 

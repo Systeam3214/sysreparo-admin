@@ -1,140 +1,398 @@
-/* Layout de Impressão de OS */
+/* ============================================
+   COMPROVANTE DE ORDEM DE SERVIÇO - RSTARK
+   Layout profissional otimizado para impressão A4
+   ============================================ */
+
 @media print {
     body * {
-        visibility: hidden;
+        visibility: hidden !important;
     }
     #print-container, #print-container * {
-        visibility: visible;
+        visibility: visible !important;
     }
     #print-container {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
-        padding: 40px;
+        padding: 0;
+        margin: 0;
         color: #000;
-        background: #fff;
+        background: #fff !important;
+        display: block !important;
+    }
+    @page {
+        margin: 15mm 12mm;
+        size: A4;
+    }
+    .print-no-break {
+        page-break-inside: avoid;
     }
 }
 
 #print-container {
     display: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
     max-width: 800px;
     margin: 0 auto;
-    border: 1px solid #eee;
-    padding: 30px;
+    padding: 0;
+    color: #1a1a2e;
+    line-height: 1.5;
+    font-size: 13px;
 }
 
+/* ---- HEADER ---- */
 .print-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    border-bottom: 2px solid #333;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
+    padding-bottom: 18px;
+    margin-bottom: 0;
+    border-bottom: 3px solid #1e3a8a;
 }
 
-.print-logo h1 {
+.print-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.print-logo-icon {
+    width: 50px;
+    height: 50px;
+    background: #1e3a8a;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.print-logo-icon svg {
+    color: white;
+}
+
+.print-logo-text h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: 22px;
+    font-weight: 700;
     color: #1e3a8a;
+    letter-spacing: -0.5px;
 }
 
-.print-logo p {
-    margin: 5px 0 0;
-    font-size: 14px;
-    color: #666;
+.print-logo-text p {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: #64748b;
 }
 
-.print-os-info {
+.print-os-badge {
     text-align: right;
+    flex-shrink: 0;
 }
 
-.print-os-info h2 {
-    margin: 0;
-    font-size: 20px;
-    color: #333;
+.print-os-badge .os-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e3a8a;
+    letter-spacing: 1px;
+    line-height: 1;
 }
 
+.print-os-badge .os-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.print-os-badge .os-date {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 4px;
+}
+
+/* ---- INFO BAR (logo abaixo do header) ---- */
+.print-info-bar {
+    display: flex;
+    justify-content: space-between;
+    background: #f1f5f9;
+    padding: 8px 14px;
+    margin-bottom: 20px;
+    font-size: 10.5px;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.print-info-bar span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ---- SECTIONS ---- */
 .print-section {
-    margin-bottom: 25px;
+    margin-bottom: 18px;
 }
 
 .print-section-title {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 11px;
     text-transform: uppercase;
-    color: #555;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
+    letter-spacing: 1.5px;
+    color: #fff;
+    background: #1e3a8a;
+    padding: 5px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    display: inline-block;
 }
 
+.print-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.print-card-body {
+    padding: 14px 16px;
+}
+
+/* ---- GRID DE DADOS ---- */
 .print-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 0;
 }
 
-.print-item {
-    font-size: 14px;
+.print-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
 }
 
-.print-item label {
+.print-field {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+}
+
+.print-field:nth-child(even) {
+    border-right: none;
+}
+
+.print-grid-3 .print-field:nth-child(3n) {
+    border-right: none;
+}
+
+.print-grid-3 .print-field:nth-child(even) {
+    border-right: 1px solid #f1f5f9;
+}
+
+.print-field-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
     font-weight: 600;
-    display: block;
-    color: #333;
     margin-bottom: 2px;
 }
 
-.print-item span {
-    color: #555;
+.print-field-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    word-break: break-word;
 }
 
+.print-field-full {
+    grid-column: 1 / -1;
+    border-right: none;
+}
+
+/* ---- STATUS ---- */
+.print-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.print-status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.print-status-badge.progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.print-status-badge.ready {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.print-status-badge.delivered {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* ---- TABELA DE PEÇAS ---- */
 .print-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
 }
 
-.print-table th, .print-table td {
-    padding: 10px;
-    border: 1px solid #eee;
+.print-table thead th {
+    background: #f8fafc;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    font-weight: 600;
     text-align: left;
-    font-size: 14px;
+    border-bottom: 2px solid #e2e8f0;
 }
 
-.print-table th {
-    background: #f9fafb;
+.print-table tbody td {
+    padding: 9px 12px;
+    font-size: 13px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.print-total {
-    margin-top: 20px;
+.print-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.print-table .col-qty {
+    text-align: center;
+    width: 60px;
+}
+
+.print-table .col-price {
     text-align: right;
-    font-size: 18px;
-    font-weight: 700;
-    padding-top: 10px;
-    border-top: 2px solid #333;
+    width: 120px;
+    font-weight: 600;
 }
 
-.print-footer {
-    margin-top: 50px;
-    text-align: center;
-    border-top: 1px dashed #ccc;
-    padding-top: 30px;
+/* ---- RESUMO FINANCEIRO ---- */
+.print-financial {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 4px;
 }
 
-.print-signature {
-    margin-top: 40px;
+.print-financial-row {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.signature-box {
-    width: 250px;
-    border-top: 1px solid #000;
-    padding-top: 5px;
-    font-size: 12px;
+.print-financial-row:last-child {
+    border-bottom: none;
+}
+
+.print-financial-row.total {
+    background: #1e3a8a;
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 12px 16px;
+}
+
+.print-financial-row .label {
+    color: #64748b;
+}
+
+.print-financial-row.total .label {
+    color: rgba(255,255,255,0.8);
+}
+
+.print-financial-row .value {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.print-financial-row.total .value {
+    color: white;
+    font-size: 16px;
+}
+
+/* ---- TERMOS E CONDIÇÕES ---- */
+.print-terms {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 20px;
+}
+
+.print-terms-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.print-terms ol {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #64748b;
+}
+
+.print-terms ol li {
+    margin-bottom: 2px;
+}
+
+/* ---- ASSINATURAS ---- */
+.print-signature-area {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    gap: 40px;
+}
+
+.print-sig-box {
+    flex: 1;
     text-align: center;
+}
+
+.print-sig-line {
+    border-top: 1.5px solid #1e293b;
+    margin-bottom: 6px;
+    margin-top: 50px;
+}
+
+.print-sig-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.print-sig-doc {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* ---- FOOTER ---- */
+.print-page-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px dashed #cbd5e1;
+    font-size: 9px;
+    color: #94a3b8;
 }

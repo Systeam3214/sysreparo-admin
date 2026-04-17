@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const submitBtn = document.getElementById('submitBtn');
     const btnSpan = submitBtn.querySelector('span');
+    const rememberMe = document.getElementById('rememberMe');
 
     // Toggle Password Visibility
     togglePasswordBtn.addEventListener('click', () => {
@@ -50,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('loading');
         
         try {
+            // Lembrar-me: LOCAL mantém logado mesmo fechando o browser
+            // SESSION desloga quando fecha o browser
+            const persistence = rememberMe.checked 
+                ? firebase.auth.Auth.Persistence.LOCAL 
+                : firebase.auth.Auth.Persistence.SESSION;
+            
+            await auth.setPersistence(persistence);
             await auth.signInWithEmailAndPassword(emailVal, passVal);
             
             // Success State
@@ -80,6 +88,85 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSpan.textContent = 'Entrar no Sistema';
                 document.getElementById('password').value = '';
             }, 2500);
+        }
+    });
+
+    // --- ESQUECEU A SENHA ---
+    const forgotModal = document.getElementById('forgotModal');
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    const closeForgotBtn = document.getElementById('closeForgotModal');
+    const sendResetBtn = document.getElementById('sendResetBtn');
+    const forgotEmail = document.getElementById('forgotEmail');
+    const forgotFeedback = document.getElementById('forgotFeedback');
+
+    forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Preenche automaticamente com o e-mail já digitado no login
+        const emailInput = document.getElementById('email').value;
+        if (emailInput) forgotEmail.value = emailInput;
+        
+        forgotFeedback.className = 'forgot-feedback';
+        forgotFeedback.textContent = '';
+        forgotModal.classList.add('active');
+    });
+
+    closeForgotBtn.addEventListener('click', () => {
+        forgotModal.classList.remove('active');
+    });
+
+    // Fechar ao clicar fora do modal
+    forgotModal.addEventListener('click', (e) => {
+        if (e.target === forgotModal) {
+            forgotModal.classList.remove('active');
+        }
+    });
+
+    sendResetBtn.addEventListener('click', async () => {
+        const email = forgotEmail.value.trim();
+        
+        if (!email) {
+            forgotFeedback.className = 'forgot-feedback error';
+            forgotFeedback.textContent = 'Por favor, digite seu e-mail.';
+            return;
+        }
+
+        sendResetBtn.classList.add('loading');
+
+        try {
+            await auth.sendPasswordResetEmail(email);
+            
+            sendResetBtn.classList.remove('loading');
+            forgotFeedback.className = 'forgot-feedback success';
+            forgotFeedback.textContent = '✓ E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.';
+            
+            // Fecha o modal após 4 segundos
+            setTimeout(() => {
+                forgotModal.classList.remove('active');
+            }, 4000);
+
+        } catch (error) {
+            console.error("Erro ao enviar reset:", error);
+            sendResetBtn.classList.remove('loading');
+            
+            let msg = 'Erro ao enviar e-mail de recuperação.';
+            if (error.code === 'auth/user-not-found') {
+                msg = 'Nenhuma conta encontrada com este e-mail.';
+            } else if (error.code === 'auth/invalid-email') {
+                msg = 'E-mail inválido. Verifique e tente novamente.';
+            } else if (error.code === 'auth/too-many-requests') {
+                msg = 'Muitas tentativas. Aguarde alguns minutos.';
+            }
+            
+            forgotFeedback.className = 'forgot-feedback error';
+            forgotFeedback.textContent = msg;
+        }
+    });
+
+    // Enter no input do modal dispara o envio
+    forgotEmail.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendResetBtn.click();
         }
     });
 });

@@ -33,13 +33,13 @@
                 <form id="loginForm" class="login-form">
                     <div class="input-modern">
                         <label for="email">E-mail corporativo</label>
-                        <input type="email" id="email" placeholder="nome@rstark.com" required>
+                        <input type="email" id="email" placeholder="E-mail" required>
                     </div>
 
                     <div class="input-modern">
                         <label for="password">Senha de acesso</label>
                         <div class="password-wrapper">
-                            <input type="password" id="password" placeholder="••••••••" required>
+                            <input type="password" id="password" placeholder="Password" required>
                             <button type="button" id="togglePassword" class="toggle-btn">
                                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -51,10 +51,10 @@
 
                     <div class="form-actions">
                         <label class="remember-me">
-                            <input type="checkbox">
+                            <input type="checkbox" id="rememberMe">
                             <span>Lembrar-me</span>
                         </label>
-                        <a href="#" class="forgot-link">Esqueceu a senha?</a>
+                        <a href="#" class="forgot-link" id="forgotPasswordLink">Esqueceu a senha?</a>
                     </div>
 
                     <button type="submit" class="primary-btn" id="submitBtn">
@@ -63,6 +63,29 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Esqueceu a Senha -->
+    <div class="forgot-modal-overlay" id="forgotModal">
+        <div class="forgot-modal">
+            <button class="forgot-modal-close" id="closeForgotModal">&times;</button>
+            <div class="forgot-modal-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <h3>Recuperar senha</h3>
+            <p>Informe seu e-mail e enviaremos um link para redefinir sua senha.</p>
+            <div class="input-modern">
+                <input type="email" id="forgotEmail" placeholder="Seu e-mail cadastrado">
+            </div>
+            <button class="primary-btn" id="sendResetBtn">
+                <span>Enviar link de recuperação</span>
+                <div class="spinner"></div>
+            </button>
+            <div class="forgot-feedback" id="forgotFeedback"></div>
         </div>
     </div>
 
