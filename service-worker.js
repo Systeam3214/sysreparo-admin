@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rstark-cache-v2';
+const CACHE_NAME = 'rstark-cache-v11';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,34 +14,37 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Force the waiting service worker to become the active one
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache v2');
+        console.log('Opened cache v11');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
 self.addEventListener('fetch', event => {
-  // Ignora chamadas para o Firestore e Google APIs
   if (event.request.url.includes('firestore.googleapis.com') || event.request.url.includes('identitytoolkit.googleapis.com')){
       return;
   }
 
-  // Estratégia Stale-While-Revalidate: serve do cache, mas atualiza em background
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        const fetchPromise = fetch(event.request).then(networkResponse => {
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
+            cache.put(event.request, responseToCache);
           });
-          return networkResponse;
-        });
-        return cachedResponse || fetchPromise;
-      })
+        }
+        return networkResponse;
+      }).catch(() => {
+        return cachedResponse;
+      });
+      
+      return cachedResponse || fetchPromise;
+    })
   );
 });
 
