@@ -13,6 +13,16 @@ firebase.initializeApp(firebaseConfig);
 const analytics = firebase.analytics();
 const db = firebase.firestore();
 
+// Habilitar Persistência Offline do Firestore
+db.enablePersistence({ synchronizeTabs: true })
+    .catch((err) => {
+        if (err.code == 'failed-precondition') {
+            console.warn('Persistência falhou: múltiplas abas abertas');
+        } else if (err.code == 'unimplemented') {
+            console.warn('Persistência não suportada pelo navegador');
+        }
+    });
+
 // Estado reativo global
 let mockOrders = [];
 let mockClients = [];
@@ -164,6 +174,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     applyMasks();
+
+    // --- COOKIE CONSENT (Dashboard) ---
+    const cookieBanner = document.getElementById('cookieBanner');
+    const acceptCookiesBtn = document.getElementById('acceptCookies');
+
+    if (cookieBanner && acceptCookiesBtn) {
+        if (!localStorage.getItem('cookiesAccepted')) {
+            cookieBanner.style.display = 'block';
+        }
+
+        acceptCookiesBtn.addEventListener('click', () => {
+            localStorage.setItem('cookiesAccepted', 'true');
+            cookieBanner.style.opacity = '0';
+            setTimeout(() => {
+                cookieBanner.style.display = 'none';
+            }, 500);
+        });
+    }
+
+    // Monitoramento de Conexão
+    window.addEventListener('online', () => {
+        document.body.classList.remove('is-offline');
+        console.log('Online: Sincronizando dados...');
+    });
+    window.addEventListener('offline', () => {
+        document.body.classList.add('is-offline');
+        console.warn('Offline: Modo de dados local ativado');
+    });
 });
 
 // --- LÓGICA DE BUSCA GLOBAL ---

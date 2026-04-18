@@ -393,3 +393,55 @@ body {
         padding: 30px 24px;
     }
 }
+/* Cookie Consent Banner */
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-white);
+    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    z-index: 10000;
+    animation: slideUp 0.5s ease;
+}
+
+.cookie-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+
+.cookie-content p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    flex: 1;
+}
+
+.cookie-btn {
+    padding: 12px 32px;
+    white-space: nowrap;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .cookie-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .cookie-banner {
+        padding: 20px;
+    }
+    .cookie-btn {
+        width: 100%;
+    }
+}
