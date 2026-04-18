@@ -35,13 +35,11 @@ let lastSyncTime = localStorage.getItem('lastSyncTime') || '--:--';
 function updateSyncUI() {
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.querySelector('.status-text');
-    const syncTimeEl = document.querySelector('.sync-time');
     const isOnline = navigator.onLine;
 
-    if (statusDot && statusText && syncTimeEl) {
+    if (statusDot && statusText) {
         statusDot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
         statusText.innerText = isOnline ? 'Online' : 'Offline';
-        syncTimeEl.innerText = `Última sincronização: ${lastSyncTime}`;
     }
 }
 
