@@ -185,8 +185,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SETUP FIREBASE LISTENERS ---
     firebase.auth().onAuthStateChanged((user) => {
         if (!user) {
-            window.location.href = 'bloqueado.html';
+            // Se estiver offline, verifica se tem uma sessão offline ativa vindo do picker/login
+            const offlineSession = JSON.parse(localStorage.getItem('rstark_current_offline_session'));
+            if (!navigator.onLine && offlineSession) {
+                console.log("Sessão Offline Detectada:", offlineSession.name);
+                checkPermissions(offlineSession, true); // true indica que é offline
+                setupFirebaseListeners();
+            } else {
+                window.location.href = 'bloqueado.html';
+            }
         } else {
+            // Limpa bypass se estamos online e com usuário real
+            localStorage.removeItem('rstark_current_offline_session');
             checkPermissions(user);
             setupFirebaseListeners();
         }
@@ -227,6 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSyncUI(); // Inicializa UI
 });
 
+// --- LOGOUT ---
+window.handleLogout = function() {
+    localStorage.removeItem('rstark_current_offline_session');
+    firebase.auth().signOut().then(() => {
+        window.location.href = 'index.html';
+    });
+};
+
 // --- LÓGICA DE BUSCA GLOBAL ---
 window.filterOrders = function(query) {
     const q = query.toLowerCase();
@@ -260,18 +278,24 @@ window.filterClients = function(query) {
     });
 };
 
-async function checkPermissions(user) {
+async function checkPermissions(user, isOffline = false) {
     let userTag = 'worker';
-    let userName = user.displayName || 'Funcionário';
+    let userName = user.displayName || user.name || 'Funcionário';
 
-    try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-            userTag = userDoc.data().tag || 'worker';
-            userName = userDoc.data().name || user.email;
+    if (isOffline) {
+        // Se for offline, usa os dados do cache passados no objeto user
+        userTag = user.tag || 'worker';
+        userName = user.name || 'Técnico';
+    } else {
+        try {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (userDoc.exists) {
+                userTag = userDoc.data().tag || 'worker';
+                userName = userDoc.data().name || user.email;
+            }
+        } catch (e) {
+            console.error("Erro ao buscar permissões:", e);
         }
-    } catch (e) {
-        console.error("Erro ao buscar permissões:", e);
     }
 
     currentUserTag = userTag;
