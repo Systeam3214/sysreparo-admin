@@ -30,6 +30,20 @@ let mockParts = [];
 let currentFilter = 'Todos';
 let currentUserTag = 'worker'; // Global para controle de UI dinâmica
 let currentUsedParts = []; // Lista temporária para o modal de OS
+let lastSyncTime = localStorage.getItem('lastSyncTime') || '--:--';
+
+function updateSyncUI() {
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
+    const syncTimeEl = document.querySelector('.sync-time');
+    const isOnline = navigator.onLine;
+
+    if (statusDot && statusText && syncTimeEl) {
+        statusDot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
+        statusText.innerText = isOnline ? 'Online' : 'Offline';
+        syncTimeEl.innerText = `Última sincronização: ${lastSyncTime}`;
+    }
+}
 
 // --- AUXILIARES DE MÁSCARA ---
 function maskPhone(v) {
@@ -196,12 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Monitoramento de Conexão
     window.addEventListener('online', () => {
         document.body.classList.remove('is-offline');
+        updateSyncUI();
         console.log('Online: Sincronizando dados...');
     });
     window.addEventListener('offline', () => {
         document.body.classList.add('is-offline');
+        updateSyncUI();
         console.warn('Offline: Modo de dados local ativado');
     });
+
+    updateSyncUI(); // Inicializa UI
 });
 
 // --- LÓGICA DE BUSCA GLOBAL ---
@@ -481,7 +499,17 @@ window.renderClientsTable = function() {
 };
 
 function setupFirebaseListeners() {
+    const updateSyncTimestamp = (snapshot) => {
+        if (!snapshot.metadata.fromCache) {
+            const now = new Date();
+            lastSyncTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            localStorage.setItem('lastSyncTime', lastSyncTime);
+            updateSyncUI();
+        }
+    };
+
     db.collection('clients').onSnapshot((snapshot) => {
+        updateSyncTimestamp(snapshot);
         mockClients = [];
         snapshot.forEach(docSnap => {
             mockClients.push({ id: docSnap.id, ...docSnap.data() });
@@ -493,6 +521,7 @@ function setupFirebaseListeners() {
     });
 
     db.collection('orders').onSnapshot((snapshot) => {
+        updateSyncTimestamp(snapshot);
         mockOrders = [];
         snapshot.forEach(docSnap => {
             mockOrders.push({ id: docSnap.id, ...docSnap.data() });
@@ -510,6 +539,7 @@ function setupFirebaseListeners() {
     });
 
     db.collection('parts').onSnapshot((snapshot) => {
+        updateSyncTimestamp(snapshot);
         mockParts = [];
         snapshot.forEach(docSnap => {
             mockParts.push({ id: docSnap.id, ...docSnap.data() });
