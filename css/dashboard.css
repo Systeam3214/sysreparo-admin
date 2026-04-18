@@ -25,10 +25,13 @@
     right: auto;
 }
 
-    .sidebar-header {
-        margin-bottom: 20px;
-        z-index: 2;
-    }
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+    z-index: 2;
+}
 
     .sidebar-header .logo-badge {
         width: 48px;
@@ -891,6 +894,9 @@ body.dark-mode {
     }
 
     .sidebar-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         margin-bottom: 0;
         cursor: pointer;
         padding: 12px 0;
