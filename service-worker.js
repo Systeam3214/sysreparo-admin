@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rstark-cache-v1';
+const CACHE_NAME = 'rstark-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,29 +14,33 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Force the waiting service worker to become the active one
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Opened cache v2');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
 self.addEventListener('fetch', event => {
-  // Ignora chamadas para o Firestore e Google APIs para não quebrar a sincronização
+  // Ignora chamadas para o Firestore e Google APIs
   if (event.request.url.includes('firestore.googleapis.com') || event.request.url.includes('identitytoolkit.googleapis.com')){
       return;
   }
 
+  // Estratégia Stale-While-Revalidate: serve do cache, mas atualiza em background
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
+      .then(cachedResponse => {
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, networkResponse.clone());
+          });
+          return networkResponse;
+        });
+        return cachedResponse || fetchPromise;
       })
   );
 });
