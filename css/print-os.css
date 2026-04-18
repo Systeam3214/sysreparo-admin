@@ -22,7 +22,7 @@
         display: block !important;
     }
     @page {
-        margin: 15mm 12mm;
+        margin: 5mm 10mm;
         size: A4;
     }
     .print-no-break {
@@ -37,8 +37,8 @@
     margin: 0 auto;
     padding: 0;
     color: #1a1a2e;
-    line-height: 1.5;
-    font-size: 13px;
+    line-height: 1.35;
+    font-size: 12px;
 }
 
 /* ---- HEADER ---- */
@@ -46,7 +46,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding-bottom: 18px;
+    padding-bottom: 12px;
     margin-bottom: 0;
     border-bottom: 3px solid #1e3a8a;
 }
@@ -74,7 +74,7 @@
 
 .print-logo-text h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #1e3a8a;
     letter-spacing: -0.5px;
@@ -92,7 +92,7 @@
 }
 
 .print-os-badge .os-number {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     color: #1e3a8a;
     letter-spacing: 1px;
@@ -119,8 +119,8 @@
     display: flex;
     justify-content: space-between;
     background: #f1f5f9;
-    padding: 8px 14px;
-    margin-bottom: 20px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
     font-size: 10.5px;
     color: #475569;
     border-bottom: 1px solid #e2e8f0;
@@ -134,7 +134,7 @@
 
 /* ---- SECTIONS ---- */
 .print-section {
-    margin-bottom: 18px;
+    margin-bottom: 10px;
 }
 
 .print-section-title {
@@ -144,9 +144,9 @@
     letter-spacing: 1.5px;
     color: #fff;
     background: #1e3a8a;
-    padding: 5px 12px;
+    padding: 3px 10px;
     border-radius: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     display: inline-block;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .print-card-body {
-    padding: 14px 16px;
+    padding: 8px 12px;
 }
 
 /* ---- GRID DE DADOS ---- */
@@ -172,7 +172,7 @@
 }
 
 .print-field {
-    padding: 8px 12px;
+    padding: 4px 10px;
     border-bottom: 1px solid #f1f5f9;
     border-right: 1px solid #f1f5f9;
 }
@@ -199,7 +199,7 @@
 }
 
 .print-field-value {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: #1e293b;
     word-break: break-word;
@@ -248,7 +248,7 @@
 
 .print-table thead th {
     background: #f8fafc;
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -259,8 +259,8 @@
 }
 
 .print-table tbody td {
-    padding: 9px 12px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-size: 12px;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
 }
@@ -291,8 +291,8 @@
 .print-financial-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 12px;
     border-bottom: 1px solid #f1f5f9;
 }
 
@@ -304,8 +304,8 @@
     background: #1e3a8a;
     color: #fff;
     font-weight: 700;
-    font-size: 15px;
-    padding: 12px 16px;
+    font-size: 14px;
+    padding: 8px 12px;
 }
 
 .print-financial-row .label {
@@ -331,8 +331,8 @@
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 14px 16px;
-    margin-top: 20px;
+    padding: 8px 12px;
+    margin-top: 12px;
 }
 
 .print-terms-title {
@@ -360,7 +360,7 @@
 .print-signature-area {
     display: flex;
     justify-content: space-between;
-    margin-top: 40px;
+    margin-top: 15px;
     gap: 40px;
 }
 
@@ -372,7 +372,7 @@
 .print-sig-line {
     border-top: 1.5px solid #1e293b;
     margin-bottom: 6px;
-    margin-top: 50px;
+    margin-top: 25px;
 }
 
 .print-sig-name {
@@ -390,8 +390,8 @@
 /* ---- FOOTER ---- */
 .print-page-footer {
     text-align: center;
-    margin-top: 20px;
-    padding-top: 12px;
+    margin-top: 8px;
+    padding-top: 6px;
     border-top: 1px dashed #cbd5e1;
     font-size: 9px;
     color: #94a3b8;

@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SETUP FIREBASE LISTENERS ---
     firebase.auth().onAuthStateChanged((user) => {
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.href = 'bloqueado.html';
         } else {
             checkPermissions(user);
             setupFirebaseListeners();
@@ -1485,21 +1485,51 @@ window.getOSPrintHTML = async function(id) {
     // Peças usadas
     const usedParts = order.usedParts || [];
     let partsRowsHtml = '';
+    let uniquePartsCount = 0;
+    let compactStyle = '';
+
     if (usedParts.length > 0) {
-        partsRowsHtml = usedParts.map((p, i) => `
+        const groupedParts = {};
+        usedParts.forEach(p => {
+            const key = p.name;
+            if (!groupedParts[key]) {
+                groupedParts[key] = { name: p.name, price: (p.price || 0), qty: 1 };
+            } else {
+                groupedParts[key].qty += 1;
+            }
+        });
+        
+        uniquePartsCount = Object.keys(groupedParts).length;
+
+        partsRowsHtml = Object.values(groupedParts).map((p, i) => `
             <tr>
                 <td style="color:#64748b; width:30px;">${String(i + 1).padStart(2, '0')}</td>
                 <td>${p.name}</td>
-                <td class="col-qty">1</td>
-                <td class="col-price">R$ ${(p.price || 0).toFixed(2)}</td>
+                <td class="col-qty">${p.qty}</td>
+                <td class="col-price">R$ ${(p.price * p.qty).toFixed(2)}</td>
             </tr>
         `).join('');
+    }
+
+    // Se tiver itens, a tabela já rouba muito espaço vertical. Injetamos CSS mais agressivo para manter 1 página.
+    if (uniquePartsCount > 0) {
+        compactStyle = `
+        <style>
+            #print-container .print-section { margin-bottom: 6px !important; }
+            #print-container .print-card-body { padding: 4px 8px !important; }
+            #print-container .print-table tbody td { padding: 4px 8px !important; }
+            #print-container .print-terms { padding: 6px 10px !important; margin-top: 8px !important; }
+            #print-container .print-signature-area { margin-top: 10px !important; }
+            #print-container .print-sig-line { margin-top: 20px !important; }
+            #print-container .print-page-footer { margin-top: 4px !important; padding-top: 4px !important; }
+        </style>`;
     }
 
     const now = new Date();
     const emissionDate = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
 
     return `
+        ${compactStyle}
         <!-- CABEÇALHO -->
         <div class="print-header">
             <div class="print-logo">
@@ -1511,7 +1541,6 @@ window.getOSPrintHTML = async function(id) {
                 <div class="print-logo-text">
                     <h1>Rstark</h1>
                     <p>Assistência Técnica Especializada</p>
-                    <p>TVs • Monitores • Notebooks • Home Theaters</p>
                 </div>
             </div>
             <div class="print-os-badge">
@@ -1523,9 +1552,9 @@ window.getOSPrintHTML = async function(id) {
 
         <!-- BARRA DE INFO -->
         <div class="print-info-bar">
-            <span>📞 (00) 00000-0000</span>
-            <span>✉️ contato@rstark.com</span>
-            <span>📍 Endereço da Empresa</span>
+            <span>📞 (21) 98331-4697</span>
+            <span>✉️ renato.rstark@gmail.com</span>
+            <span>📍 Rua Francelino Barcelos, 11 Loja C, Cafubá / Piratininga, Niterói - RJ</span>
         </div>
 
         <!-- CLIENTE -->
