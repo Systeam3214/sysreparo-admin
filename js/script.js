@@ -14,11 +14,23 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // Hashing para segurança offline
+// Hashing para segurança offline (com fallback para ambientes sem HTTPS)
 async function hashCredentials(email, password) {
-    const msgUint8 = new TextEncoder().encode(email.toLowerCase().trim() + password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const input = email.toLowerCase().trim() + ":" + password;
+    
+    // Tenta usar a API de criptografia moderna (mais segura)
+    if (window.crypto && window.crypto.subtle) {
+        try {
+            const msgUint8 = new TextEncoder().encode(input);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch(e) { console.error("Erro no hashing moderno:", e); }
+    }
+    
+    // Fallback: Codificação simples para não travar o site em conexões HTTP/Locais
+    console.warn("Usando fallback de segurança offline (ambiente inseguro)");
+    return btoa(input).split('').reverse().join(''); 
 }
 
 document.addEventListener('DOMContentLoaded', () => {
