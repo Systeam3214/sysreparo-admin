@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gestão Rstark</title>
-    <link rel="stylesheet" href="css/style.css?v=6">
-    <link rel="stylesheet" href="css/dashboard.css?v=6">
-    <link rel="stylesheet" href="css/print-os.css?v=6">
-    <script src="js/script.js?v=6" defer></script>
+    <link rel="stylesheet" href="css/style.css?v=7">
+    <link rel="stylesheet" href="css/dashboard.css?v=7">
+    <link rel="stylesheet" href="css/print-os.css?v=7">
+    <script src="js/dashboard.js?v=7" defer></script>
+    <script src="js/script.js?v=7"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -32,6 +33,8 @@
                 <h2>Rstark</h2>
             </div>
 
+
+            
             <div class="sync-status" id="syncStatus">
                 <div class="status-info">
                     <span class="status-dot"></span>
@@ -762,7 +765,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="js/dashboard.js"></script>
+    <!-- dashboard.js já carregado no head com defer v7 -->
 
     <!-- Service Worker Registration -->
     <script>

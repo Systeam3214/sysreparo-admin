@@ -41,6 +41,13 @@ function updateSyncUI() {
         statusDot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
         statusText.innerText = isOnline ? 'Online' : 'Offline';
     }
+
+    // Gerencia o banner global de offline e a classe do body
+    if (isOnline) {
+        document.body.classList.remove('is-offline');
+    } else {
+        document.body.classList.add('is-offline');
+    }
 }
 
 // --- AUXILIARES DE MÁSCARA ---
