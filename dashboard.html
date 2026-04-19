@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gestão Rstark</title>
-    <link rel="stylesheet" href="css/style.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css?v=14">
-    <link rel="stylesheet" href="css/print-os.css?v=14">
-    <script src="js/dashboard.js?v=14" defer></script>
+    <link rel="stylesheet" href="css/style.css?v=18">
+    <link rel="stylesheet" href="css/dashboard.css?v=18">
+    <link rel="stylesheet" href="css/print-os.css?v=18">
+    <script src="js/dashboard.js?v=18" defer></script>
     <meta name="theme-color" content="#2563eb">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -123,9 +123,9 @@
             <!-- Status Cards -->
             <div class="dashboard-grid">
                 <!-- Card 1 -->
-                <div class="stat-card" id="card-andamento" style="cursor: pointer;" title="Ver ordens em andamento">
+                <div class="stat-card" id="card-andamento" style="cursor: pointer;" title="Ver ordens em reparo">
                     <div class="stat-header">
-                        <span class="stat-title">Reparos em Andamento</span>
+                        <span class="stat-title">Reparo</span>
                         <div class="stat-icon blue">
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </div>
@@ -137,7 +137,7 @@
                 <!-- Card 2 -->
                 <div class="stat-card warning">
                     <div class="stat-header">
-                        <span class="stat-title">Aguardando Análise</span>
+                        <span class="stat-title">Análise</span>
                         <div class="stat-icon orange">
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                         </div>
@@ -149,7 +149,7 @@
                 <!-- Card 3 -->
                 <div class="stat-card success" id="card-entregues" style="cursor: pointer;" title="Ver ordens entregues">
                     <div class="stat-header">
-                        <span class="stat-title">Entregues (Semana)</span>
+                        <span class="stat-title">Entregue</span>
                         <div class="stat-icon green">
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
@@ -746,6 +746,7 @@
 
     <!-- Modal de Detalhes Mobile (Modular) -->
     <div class="modal-overlay mobile-details-modal" id="mobileDetailsModal">
+        <!-- (Conteúdo existente do modal de ordens) -->
         <div class="modal-content" style="background: white !important;">
             <div class="mobile-details-header">
                 <button class="forgot-modal-close" onclick="closeMobileDetails()" id="btnMobileClose" style="top: 15px; right: 15px;">&times;</button>
@@ -799,7 +800,8 @@
                     </button>
                 </div>
 
-                <!-- SEÇÃO: APARELHO -->
+                <!-- SEÇÕES DAS ORDENS (OCULTAS) -->
+                <!-- ... -->
                 <div id="sectionDevice" class="mobile-section" style="display: none;">
                     <div class="mobile-details-section">
                         <h4>Aparelho e Relato</h4>
@@ -817,7 +819,6 @@
                     </div>
                 </div>
 
-                <!-- SEÇÃO: PEÇAS -->
                 <div id="sectionParts" class="mobile-section" style="display: none;">
                     <div class="mobile-details-section">
                         <h4>Gerenciar Peças</h4>
@@ -829,7 +830,6 @@
                     </div>
                 </div>
 
-                <!-- SEÇÃO: FINANCEIRO -->
                 <div id="sectionFinance" class="mobile-section" style="display: none;">
                     <div class="mobile-details-section">
                         <h4>Mão de Obra e Status</h4>
@@ -839,8 +839,11 @@
                         </div>
                         
                         <div class="form-group">
-                            <label>Status da OS</label>
-                            <select class="input-control" id="mobileStatus">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin-bottom: 0;">Status da OS</label>
+                                <span id="mobileStatusBadge" class="status-badge">Análise</span>
+                            </div>
+                            <select class="input-control" id="mobileStatus" onchange="window.handleMobileStatusChange()">
                                 <option value="Análise">Análise</option>
                                 <option value="Reparo">Reparo</option>
                                 <option value="Pronto">Pronto</option>
@@ -857,9 +860,195 @@
                     <span class="mobile-total-value" id="mobileTotalDisplay">R$ 0,00</span>
                 </div>
                 
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button class="action-btn" onclick="printMobileOrder()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: #f1f5f9; padding: 12px;">
+                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                         Imprimir Ordem de Serviço
+                    </button>
+                </div>
+
                 <div style="display: flex; gap: 8px;">
                     <button class="action-btn primary" onclick="saveMobileDetails()" id="btnSaveMobile" style="flex: 1;">Salvar Alterações</button>
                     <button class="action-btn danger" onclick="deleteMobileOrder()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cliente Mobile (Modular) -->
+    <div class="modal-overlay mobile-details-modal" id="mobileClientModal">
+        <div class="modal-content" style="background: white !important;">
+            <div class="mobile-details-header">
+                <button class="forgot-modal-close" onclick="closeMobileClient()" id="btnClientClose" style="top: 15px; right: 15px;">&times;</button>
+                <button class="back-btn" id="btnClientBack" onclick="showMobileClientMenu()" style="display: none; position: absolute; left: 15px; top: 15px; background: none; border: none; color: var(--primary); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Voltar
+                </button>
+                <div style="text-align: center; width: 100%;">
+                    <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gestão de Cliente</div>
+                    <h3 id="mobileClientHeaderName" style="margin-top: 2px; font-size: 18px;">Novo Cliente</h3>
+                    <div id="mobileClientStatusBadge" class="status-badge completed" style="font-size: 10px; margin-top: 2px;">Ativo</div>
+                </div>
+            </div>
+            
+            <div class="mobile-details-body">
+                <input type="hidden" id="mobileClientId">
+                <div id="mobileClientMenu" class="mobile-menu-grid">
+                    <button class="menu-card" onclick="showMobileClientSection('basic')">
+                        <div class="menu-icon blue">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="menu-text">
+                            <span>Dados Pessoais</span>
+                            <small>Nome, e-mail e cadastro</small>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                    
+                    <button class="menu-card" onclick="showMobileClientSection('address')">
+                        <div class="menu-icon green">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        </div>
+                        <div class="menu-text">
+                            <span>Endereço</span>
+                            <small>CEP, rua e localização</small>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+
+                    <button class="menu-card" onclick="showMobileClientSection('contact')">
+                        <div class="menu-icon orange">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        </div>
+                        <div class="menu-text">
+                            <span>Canais de Contato</span>
+                            <small>Celular e telefone fixo</small>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div id="sectionClientBasic" class="mobile-section" style="display: none;">
+                    <div class="mobile-details-section">
+                        <h4>Informações Básicas</h4>
+                        <input type="text" class="input-control" id="mobileClientNameInput" placeholder="Nome Completo" style="margin-bottom: 12px;">
+                        <input type="email" class="input-control" id="mobileClientEmailInput" placeholder="E-mail (Opcional)">
+                    </div>
+                </div>
+
+                <div id="sectionClientAddress" class="mobile-section" style="display: none;">
+                    <div class="mobile-details-section">
+                        <h4>Localização</h4>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                            <input type="text" class="input-control" id="mobileClientCEP" placeholder="CEP" style="flex: 1;">
+                            <button class="action-btn" onclick="buscarCEP('mobileClient')" style="background: var(--primary); color: white; padding: 0 12px;">🔍</button>
+                        </div>
+                        <input type="text" class="input-control" id="mobileClientAddress" placeholder="Rua / Logradouro" style="margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 80px 1fr; gap: 10px; margin-bottom: 12px;">
+                            <input type="text" class="input-control" id="mobileClientNumber" placeholder="Nº">
+                            <input type="text" class="input-control" id="mobileClientComplement" placeholder="Comp. (Apto, etc)">
+                        </div>
+                        <input type="text" class="input-control" id="mobileClientNeighborhood" placeholder="Bairro">
+                    </div>
+                </div>
+
+                <div id="sectionClientContact" class="mobile-section" style="display: none;">
+                    <div class="mobile-details-section">
+                        <h4>Telefones</h4>
+                        <div class="form-group">
+                            <label>Celular (WhatsApp)</label>
+                            <input type="text" class="input-control" id="mobileClientPhone" placeholder="(00) 00000-0000" style="margin-bottom: 15px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone Residencial / Fixo</label>
+                            <input type="text" class="input-control" id="mobileClientPhoneResidential" placeholder="(00) 0000-0000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mobile-details-footer">
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn primary" onclick="saveMobileClient()" id="btnSaveMobileClient" style="flex: 1;">Salvar Cliente</button>
+                    <button class="action-btn danger" onclick="deleteMobileClient()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Peça Mobile (Modular) -->
+    <div class="modal-overlay mobile-details-modal" id="mobilePartModal">
+        <div class="modal-content" style="background: white !important;">
+            <div class="mobile-details-header">
+                <button class="forgot-modal-close" onclick="closeMobilePart()" id="btnPartClose" style="top: 15px; right: 15px;">&times;</button>
+                <button class="back-btn" id="btnPartBack" onclick="showMobilePartMenu()" style="display: none; position: absolute; left: 15px; top: 15px; background: none; border: none; color: var(--primary); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    Voltar
+                </button>
+                <div style="text-align: center; width: 100%;">
+                    <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gestão de Estoque</div>
+                    <h3 id="mobilePartHeaderName" style="margin-top: 2px; font-size: 18px;">Nova Peça</h3>
+                    <div id="mobilePartHeaderModel" style="font-size: 12px; color: var(--primary); font-weight: 500;">Modelo Compatível</div>
+                </div>
+            </div>
+            
+            <div class="mobile-details-body">
+                <input type="hidden" id="mobilePartIdInput">
+                <div id="mobilePartMenu" class="mobile-menu-grid">
+                    <button class="menu-card" onclick="showMobilePartSection('info')">
+                        <div class="menu-icon blue">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                        </div>
+                        <div class="menu-text">
+                            <span>Identificação</span>
+                            <small>Nome e compatibilidade</small>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                    
+                    <button class="menu-card" onclick="showMobilePartSection('stock')">
+                        <div class="menu-icon green">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <div class="menu-text">
+                            <span>Preço e Estoque</span>
+                            <small>Valor unitário e quantidades</small>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div id="sectionPartInfo" class="mobile-section" style="display: none;">
+                    <div class="mobile-details-section">
+                        <h4>Dados da Peça</h4>
+                        <input type="text" class="input-control" id="mobilePartNameInput" placeholder="Nome da Peça" style="margin-bottom: 12px;">
+                        <input type="text" class="input-control" id="mobilePartModelInput" placeholder="Modelo Compatível">
+                    </div>
+                </div>
+
+                <div id="sectionPartStock" class="mobile-section" style="display: none;">
+                    <div class="mobile-details-section">
+                        <h4>Valores e Quantidade</h4>
+                        <div class="form-group">
+                            <label>Preço de Venda (R$)</label>
+                            <input type="number" step="0.01" class="input-control" id="mobilePartPriceInput" placeholder="0,00" style="margin-bottom: 15px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade Disponível</label>
+                            <input type="number" class="input-control" id="mobilePartStockInput" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mobile-details-footer">
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn primary" onclick="saveMobilePart()" id="btnSaveMobilePart" style="flex: 1;">Salvar Peça</button>
+                    <button class="action-btn danger" onclick="deleteMobilePart()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>

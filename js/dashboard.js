@@ -332,22 +332,22 @@ async function checkPermissions(user, isOffline = false) {
 }
 
 function getBadgeClass(status) {
-    if (status === 'Aguardando Análise') return 'pending';
-    if (status === 'Pronto p/ Retirada' || status === 'Entregue') return 'completed';
-    if (status === 'Em Reparo') return 'progress';
+    if (status === 'Análise') return 'pending';
+    if (status === 'Pronto' || status === 'Entregue') return 'completed';
+    if (status === 'Reparo') return 'progress';
     return '';
 }
 
 function updateDashboardStats() {
-    const andamentoCount = mockOrders.filter(o => o.status === 'Em Reparo' || o.status === 'Aguardando Análise').length;
-    const pendendoCount = mockOrders.filter(o => o.status === 'Aguardando Análise').length; 
-    const entreguesCount = mockOrders.filter(o => o.status === 'Entregue' || o.status === 'Pronto p/ Retirada').length;
+    const reparoCount = mockOrders.filter(o => o.status === 'Reparo').length;
+    const analiseCount = mockOrders.filter(o => o.status === 'Análise').length; 
+    const entreguesCount = mockOrders.filter(o => o.status === 'Entregue').length;
 
     const elAndamento = document.querySelector('#card-andamento .stat-value');
-    if (elAndamento) elAndamento.innerText = andamentoCount;
+    if (elAndamento) elAndamento.innerText = reparoCount;
 
     const elPendendo = document.querySelector('.stat-card.warning .stat-value');
-    if (elPendendo) elPendendo.innerText = pendendoCount;
+    if (elPendendo) elPendendo.innerText = analiseCount;
 
     const elEntregues = document.querySelector('#card-entregues .stat-value');
     if (elEntregues) elEntregues.innerText = entreguesCount;
@@ -956,6 +956,9 @@ window.saveClient = async function() {
 };
 
 window.editClient = function(id) {
+    if (window.innerWidth <= 1024) {
+        return window.openMobileClient(id);
+    }
     const client = mockClients.find(c => c.id === id);
     if (!client) return;
     
@@ -1090,6 +1093,7 @@ function renderFinancialTable() {
     let filtered = mockOrders.filter(o => o.status === 'Entregue' && o.exitDate);
 
     if (startDate || endDate) {
+        const CACHE_NAME = 'rstark-cache-v15';
         const start = startDate ? new Date(startDate + 'T00:00:00') : null;
         const end = endDate ? new Date(endDate + 'T23:59:59') : null;
 
@@ -1389,6 +1393,9 @@ window.savePart = async function() {
 };
 
 window.editPart = function(id) {
+    if (window.innerWidth <= 1024) {
+        return window.openMobilePart(id);
+    }
     const part = mockParts.find(p => p.id === id);
     if (!part) return;
     document.getElementById('partId').value = part.id;
@@ -1879,6 +1886,9 @@ window.openMobileDetails = function(id) {
     document.getElementById('mobileLaborPrice').value = order.laborPrice || 0;
     document.getElementById('mobileStatus').value = order.status;
 
+    // Atualiza badge de status
+    window.handleMobileStatusChange();
+
     // Reinicia para o Menu Principal
     window.showMobileMenu();
 
@@ -1998,8 +2008,23 @@ window.deleteMobileOrder = function() {
     window.deleteOrder(currentMobileOrderId);
 };
 
+window.printMobileOrder = function() {
+    if (!currentMobileOrderId) return;
+    window.printOS(currentMobileOrderId);
+};
+
+window.pdfMobileOrder = function() {
+    if (!currentMobileOrderId) return;
+    window.downloadOSPDF(currentMobileOrderId);
+};
+
 window.handleMobileStatusChange = function() {
-    // Espaço para triggers específicos de status no mobile se necessário
+    const status = document.getElementById('mobileStatus').value;
+    const badge = document.getElementById('mobileStatusBadge');
+    if (badge) {
+        badge.innerText = status;
+        badge.className = `status-badge ${window.getBadgeClass(status)}`;
+    }
 };
 
 window.showMobileSection = function(sectionId) {
@@ -2027,4 +2052,171 @@ window.showMobileMenu = function() {
     document.getElementById('mobileDetailsMenu').style.display = 'block';
     document.getElementById('btnMobileBack').style.display = 'none';
     document.getElementById('btnMobileClose').style.display = 'block';
+};
+
+// --- LOGICA MODAL CLIENTE MOBILE ---
+window.openMobileClient = function(id) {
+    const client = id ? mockClients.find(c => c.id === id) : null;
+    
+    document.getElementById('mobileClientId').value = id || '';
+    document.getElementById('mobileClientNameInput').value = client ? client.name : '';
+    document.getElementById('mobileClientEmailInput').value = client ? (client.email || '') : '';
+    document.getElementById('mobileClientPhone').value = client ? (client.phone || '') : '';
+    document.getElementById('mobileClientPhoneResidential').value = client ? (client.phoneResidential || '') : '';
+    document.getElementById('mobileClientCEP').value = client ? (client.cep || '') : '';
+    document.getElementById('mobileClientAddress').value = client ? (client.address || '') : '';
+    document.getElementById('mobileClientNumber').value = client ? (client.number || '') : '';
+    document.getElementById('mobileClientComplement').value = client ? (client.complement || '') : '';
+    document.getElementById('mobileClientNeighborhood').value = client ? (client.neighborhood || '') : '';
+
+    document.getElementById('mobileClientHeaderName').innerText = client ? client.name : 'Novo Cliente';
+    document.getElementById('mobileClientStatusBadge').innerText = client ? (client.status || 'Ativo') : 'Ativo';
+
+    window.showMobileClientMenu();
+    document.getElementById('mobileClientModal').classList.add('active');
+};
+
+window.closeMobileClient = function() {
+    document.getElementById('mobileClientModal').classList.remove('active');
+};
+
+window.showMobileClientSection = function(sectionId) {
+    const sections = ['Basic', 'Address', 'Contact'];
+    sections.forEach(s => {
+        document.getElementById(`sectionClient${s}`).style.display = 'none';
+    });
+    document.getElementById('mobileClientMenu').style.display = 'none';
+    document.getElementById(`sectionClient${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`).style.display = 'block';
+    document.getElementById('btnClientBack').style.display = 'flex';
+    document.getElementById('btnClientClose').style.display = 'none';
+};
+
+window.showMobileClientMenu = function() {
+    const sections = ['Basic', 'Address', 'Contact'];
+    sections.forEach(s => {
+        document.getElementById(`sectionClient${s}`).style.display = 'none';
+    });
+    document.getElementById('mobileClientMenu').style.display = 'block';
+    document.getElementById('btnClientBack').style.display = 'none';
+    document.getElementById('btnClientClose').style.display = 'block';
+};
+
+window.saveMobileClient = async function() {
+    const id = document.getElementById('mobileClientId').value;
+    const name = document.getElementById('mobileClientNameInput').value;
+    if (!name) return showMessage("Nome é obrigatório", "Atenção");
+
+    const data = {
+        name,
+        email: document.getElementById('mobileClientEmailInput').value,
+        phone: document.getElementById('mobileClientPhone').value,
+        phoneResidential: document.getElementById('mobileClientPhoneResidential').value,
+        cep: document.getElementById('mobileClientCEP').value,
+        address: document.getElementById('mobileClientAddress').value,
+        number: document.getElementById('mobileClientNumber').value,
+        complement: document.getElementById('mobileClientComplement').value,
+        neighborhood: document.getElementById('mobileClientNeighborhood').value,
+        status: document.getElementById('mobileClientStatusBadge').innerText
+    };
+
+    const btn = document.getElementById('btnSaveMobileClient');
+    btn.disabled = true;
+    btn.innerText = 'Salvando...';
+
+    try {
+        if (id) {
+            await db.collection('clients').doc(id).update(data);
+        } else {
+            await db.collection('clients').add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+        window.closeMobileClient();
+        showMessage("Cliente salvo!", "Sucesso");
+    } catch(e) { console.error(e); }
+    btn.disabled = false;
+    btn.innerText = 'Salvar Cliente';
+};
+
+window.deleteMobileClient = function() {
+    const id = document.getElementById('mobileClientId').value;
+    if (!id) return;
+    window.closeMobileClient();
+    window.deleteClient(id);
+};
+
+// --- LOGICA MODAL PEÇA MOBILE ---
+window.openMobilePart = function(id) {
+    const part = id ? mockParts.find(p => p.id === id) : null;
+    
+    document.getElementById('mobilePartIdInput').value = id || '';
+    document.getElementById('mobilePartNameInput').value = part ? part.name : '';
+    document.getElementById('mobilePartModelInput').value = part ? part.model : '';
+    document.getElementById('mobilePartPriceInput').value = part ? part.price : '';
+    document.getElementById('mobilePartStockInput').value = part ? part.stock : '';
+
+    document.getElementById('mobilePartHeaderName').innerText = part ? part.name : 'Nova Peça';
+    document.getElementById('mobilePartHeaderModel').innerText = part ? part.model : 'Novo Modelo';
+
+    window.showMobilePartMenu();
+    document.getElementById('mobilePartModal').classList.add('active');
+};
+
+window.closeMobilePart = function() {
+    document.getElementById('mobilePartModal').classList.remove('active');
+};
+
+window.showMobilePartSection = function(sectionId) {
+    const sections = ['Info', 'Stock'];
+    sections.forEach(s => {
+        document.getElementById(`sectionPart${s}`).style.display = 'none';
+    });
+    document.getElementById('mobilePartMenu').style.display = 'none';
+    document.getElementById(`sectionPart${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`).style.display = 'block';
+    document.getElementById('btnPartBack').style.display = 'flex';
+    document.getElementById('btnPartClose').style.display = 'none';
+};
+
+window.showMobilePartMenu = function() {
+    const sections = ['Info', 'Stock'];
+    sections.forEach(s => {
+        document.getElementById(`sectionPart${s}`).style.display = 'none';
+    });
+    document.getElementById('mobilePartMenu').style.display = 'block';
+    document.getElementById('btnPartBack').style.display = 'none';
+    document.getElementById('btnPartClose').style.display = 'block';
+};
+
+window.saveMobilePart = async function() {
+    const id = document.getElementById('mobilePartIdInput').value;
+    const name = document.getElementById('mobilePartNameInput').value;
+    if (!name) return showMessage("Nome é obrigatório", "Atenção");
+
+    const data = {
+        name,
+        model: document.getElementById('mobilePartModelInput').value,
+        price: parseFloat(document.getElementById('mobilePartPriceInput').value) || 0,
+        stock: parseInt(document.getElementById('mobilePartStockInput').value) || 0
+    };
+
+    const btn = document.getElementById('btnSaveMobilePart');
+    btn.disabled = true;
+    btn.innerText = 'Salvando...';
+
+    try {
+        if (id) {
+            await db.collection('parts').doc(id).update(data);
+        } else {
+            await db.collection('parts').add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+        window.closeMobilePart();
+        showMessage("Estoque atualizado!", "Sucesso");
+    } catch(e) { console.error(e); }
+    btn.disabled = false;
+    btn.innerText = 'Salvar Peça';
+};
+
+window.deleteMobilePart = function() {
+    const id = document.getElementById('mobilePartIdInput').value;
+    if (!id) return;
+    window.closeMobilePart();
+    window.deletePart(id);
 };
