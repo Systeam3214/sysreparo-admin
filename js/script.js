@@ -41,6 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSpan = submitBtn.querySelector('span');
     const rememberMe = document.getElementById('rememberMe');
 
+    // Persistence for 'Remember Me'
+    const savedRememberMe = localStorage.getItem('rstark_remember_me') === 'true';
+    if (rememberMe) {
+        rememberMe.checked = savedRememberMe;
+        rememberMe.addEventListener('change', (e) => {
+            localStorage.setItem('rstark_remember_me', e.target.checked);
+        });
+    }
+
     // Toggle Password Visibility
     togglePasswordBtn.addEventListener('click', () => {
         const isPassword = passwordInput.getAttribute('type') === 'password';
