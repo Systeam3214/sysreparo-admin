@@ -332,16 +332,15 @@ async function checkPermissions(user, isOffline = false) {
 }
 
 function getBadgeClass(status) {
-    if (status === 'Em análise' || status === 'Análise') return 'pending';
-    if (status === 'Pronto / p retirada' || status === 'Pronto' || status === 'Entregue') return 'completed';
-    if (status === 'Em reparo' || status === 'Reparo' || status === 'Aguardando peça') return 'progress';
-    if (status === 'Cancelado') return 'danger';
+    if (status === 'Análise') return 'pending';
+    if (status === 'Pronto' || status === 'Entregue') return 'completed';
+    if (status === 'Reparo') return 'progress';
     return '';
 }
 
 function updateDashboardStats() {
-    const reparoCount = mockOrders.filter(o => o.status === 'Em reparo' || o.status === 'Reparo' || o.status === 'Aguardando peça').length;
-    const analiseCount = mockOrders.filter(o => o.status === 'Em análise' || o.status === 'Análise').length; 
+    const reparoCount = mockOrders.filter(o => o.status === 'Reparo').length;
+    const analiseCount = mockOrders.filter(o => o.status === 'Análise').length; 
     const entreguesCount = mockOrders.filter(o => o.status === 'Entregue').length;
 
     const elAndamento = document.querySelector('#card-andamento .stat-value');
@@ -353,77 +352,6 @@ function updateDashboardStats() {
     const elEntregues = document.querySelector('#card-entregues .stat-value');
     if (elEntregues) elEntregues.innerText = entreguesCount;
 }
-
-window.printDashboardSummaryReport = function() {
-    const reparoCount = mockOrders.filter(o => o.status === 'Reparo').length;
-    const analiseCount = mockOrders.filter(o => o.status === 'Análise').length;
-    const entreguesCount = mockOrders.filter(o => o.status === 'Entregue').length;
-    const totalCount = mockOrders.length;
-    
-    const now = new Date();
-    const emissionDate = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
-
-    const html = `
-        <div class="print-header">
-            <div class="print-logo">
-                <div class="print-logo-icon">
-                    <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                </div>
-                <div class="print-logo-text">
-                    <h1>Rstark Dashboard</h1>
-                    <p>Resumo Geral de Atividades</p>
-                </div>
-            </div>
-            <div class="print-os-badge">
-                <div class="os-label">GERADO EM</div>
-                <div class="os-date">${now.toLocaleDateString('pt-BR')}</div>
-            </div>
-        </div>
-
-        <div class="print-section" style="margin-top: 20px;">
-            <div class="print-section-title">Resumo Operacional</div>
-            <div class="print-card">
-                <div class="print-grid print-grid-3">
-                    <div class="print-field">
-                        <div class="print-field-label">Em Reparo</div>
-                        <div class="print-field-value">${reparoCount}</div>
-                    </div>
-                    <div class="print-field">
-                        <div class="print-field-label">Em Análise</div>
-                        <div class="print-field-value">${analiseCount}</div>
-                    </div>
-                    <div class="print-field">
-                        <div class="print-field-label">Finalizados/Entregues</div>
-                        <div class="print-field-value">${entreguesCount}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="print-section">
-            <div class="print-section-title">Indicadores Totais</div>
-            <div class="print-card">
-                <div class="print-card-body">
-                    <div style="font-size: 16px; font-weight: 600; color: #1e3a8a;">
-                        Total de Ordens Registradas: <span style="float: right;">${totalCount}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="print-page-footer" style="margin-top: 50px;">
-            Relatório de resumo operacional gerado em ${emissionDate} pelo sistema Rstark.
-        </div>
-    `;
-
-    const printContainer = document.getElementById('print-container');
-    if (printContainer) {
-        printContainer.innerHTML = html;
-        window.print();
-    }
-};
 
 window.updateRecentActivities = function() {
     const list = document.getElementById('recentActivityList');
@@ -529,9 +457,28 @@ window.renderOrdersTable = function(filter = 'Todos') {
                 ${exitDateStr ? `<div style="font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px;">S: ${exitDateStr}</div>` : ''}
             </td>
             <td>
-                <div class="table-actions">
-                    <button class="icon-btn edit" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Gerenciar OS">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <!-- Ações Desktop -->
+                <div class="table-actions desktop-actions">
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editOrder('${order.id}')" title="Editar Status/Detalhes">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="icon-btn print" onclick="event.stopPropagation(); printOS('${order.id}')" title="Imprimir Comprovante">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    </button>
+                    <button class="icon-btn pdf" onclick="event.stopPropagation(); downloadOSPDF('${order.id}')" title="Baixar PDF">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </button>
+                    ${currentUserTag === 'adm' ? `
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOrder('${order.id}')" title="Excluir OS">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                    ` : ''}
+                </div>
+
+                <!-- Ações Mobile (Oculto no Desktop via CSS) -->
+                <div class="mobile-actions" style="display:none;">
+                    <button class="details-btn" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Gerenciar OS">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11l4 4m-4 0l4-4"></path></svg>
                     </button>
                 </div>
             </td>
@@ -574,9 +521,14 @@ window.renderClientsTable = function() {
             <td><span class="status-badge ${badgeClass}">${client.status || 'Ativo'}</span></td>
             <td>
                 <div class="table-actions">
-                    <button class="icon-btn edit" onclick="event.stopPropagation(); openMobileClient('${client.id}')" title="Gerenciar Cliente">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editClient('${client.id}')" title="Editar">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
+                    ${currentUserTag === 'adm' ? `
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deleteClient('${client.id}')" title="Excluir">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                    ` : ''}
                 </div>
             </td>
         `;
@@ -1300,9 +1252,9 @@ window.renderStaffTable = function() {
                 <td>${data.email}</td>
                 <td><span class="status-badge ${data.tag === 'adm' ? 'completed' : 'progress'}">${data.tag.toUpperCase()}</span></td>
                 <td>
-                    <div class="table-actions">
-                        <span style="font-size: 11px; color: var(--text-muted);">Gestão via Detalhes</span>
-                    </div>
+                    <button class="icon-btn delete" onclick="deleteStaff('${id}', '${data.email}')" title="Remover Acesso">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </td>
             `;
             tableBody.appendChild(tr);
@@ -1379,9 +1331,10 @@ function renderPartsTable() {
             </td>
             <td>
                 <div class="table-actions">
-                    <button class="icon-btn edit" onclick="event.stopPropagation(); openMobilePart('${part.id}')" title="Gerenciar Estoque">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
+                    <button class="icon-btn edit" onclick="event.stopPropagation(); editPart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                    ${currentUserTag === 'adm' ? `
+                    <button class="icon-btn delete" onclick="event.stopPropagation(); deletePart('${part.id}')"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    ` : ''}
                 </div>
             </td>
         `;
@@ -1562,6 +1515,15 @@ window.exportDetailedReport = function() {
     showMessage("Relatório gerado e baixado como arquivo de texto detalhado!", "Relatório Pronto");
 };
 
+// Substituir o botão de relatório original para chamar o novo
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const reportBtn = document.querySelector('.action-btn[data-auth="adm"]');
+        if (reportBtn) {
+            reportBtn.setAttribute('onclick', 'exportDetailedReport()');
+        }
+    }, 1500);
+});
 
 // --- LÓGICA DE CEP E TELEFONE ---
 window.lookupCEP = function(cepValue, prefix) {
@@ -1622,17 +1584,14 @@ window.getOSPrintHTML = async function(id) {
     const exitDateStr = order.exitDate?.toDate 
         ? order.exitDate.toDate().toLocaleDateString('pt-BR') + ' ' + order.exitDate.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         : (order.exitDate instanceof Date ? order.exitDate.toLocaleDateString('pt-BR') : '—');
-
-    const laborPrice = order.laborPrice || 0;
+        const laborPrice = order.laborPrice || 0;
     const partsTotal = order.partsTotal || 0;
     const finalValue = order.finalValue || 0;
 
-    let statusClass = 'pending';
-    if (order.status === 'Em análise' || order.status === 'Análise') statusClass = 'pending';
-    else if (order.status === 'Em reparo' || order.status === 'Reparo' || order.status === 'Aguardando peça') statusClass = 'progress';
-    else if (order.status === 'Pronto / p retirada' || order.status === 'Pronto') statusClass = 'completed';
+    if (order.status === 'Análise') statusClass = 'pending';
+    else if (order.status === 'Reparo') statusClass = 'progress';
+    else if (order.status === 'Pronto') statusClass = 'completed';
     else if (order.status === 'Entregue') statusClass = 'delivered';
-    else if (order.status === 'Cancelado') statusClass = 'danger';
 
     // Peças usadas
     const usedParts = order.usedParts || [];
@@ -1811,7 +1770,7 @@ window.getOSPrintHTML = async function(id) {
                             <th style="width:30px;">#</th>
                             <th>Descrição da Peça</th>
                             <th class="col-qty">Qtd</th>
-                            <th class="col-price">Subtotal</th>
+                            <th class="col-price">Valor Unit.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1911,30 +1870,21 @@ window.downloadOSPDF = async function(id) {
 let currentMobileOrderId = null;
 
 window.openMobileDetails = function(id) {
-    const order = id ? mockOrders.find(o => o.id === id) : null;
-    
-    currentMobileOrderId = id;
-    document.getElementById('mobileOrderId').value = id || '';
-    
-    // Título e Subtítulo
-    document.getElementById('mobileClientName').innerText = order ? order.client : 'Nova Ordem de Serviço';
-    document.getElementById('mobileOSNumber').innerText = order ? (order.displayId || 'OS-Cloud') : 'Novo Registro';
-    
-    // Preenche campos ou limpa para nova OS
-    document.getElementById('mobileDeviceType').value = order ? (order.deviceType || '') : '';
-    document.getElementById('mobileDeviceModel').value = order ? (order.deviceModel || '') : '';
-    document.getElementById('mobileDeviceSerial').value = order ? (order.deviceSerial || '') : '';
-    document.getElementById('mobileIssue').value = order ? (order.issue || '') : '';
-    document.getElementById('mobileEstimatedDate').value = order ? (order.estimatedDate || '') : '';
-    document.getElementById('mobileLaborPrice').value = order ? (order.laborPrice || 0) : 0;
-    document.getElementById('mobileStatus').value = order ? order.status : 'Análise';
+    const order = mockOrders.find(o => o.id === id);
+    if (!order) return;
 
-    // Se for Nova OS, precisamos garantir que o seletor de cliente esteja visível (vou adicionar no HTML)
-    const clientSelectorGroup = document.getElementById('mobileClientSelectorGroup');
-    if (clientSelectorGroup) {
-        clientSelectorGroup.style.display = id ? 'none' : 'block';
-        window.updateMobileClientSelector();
-    }
+    currentMobileOrderId = id;
+    document.getElementById('mobileOrderId').value = id;
+    document.getElementById('mobileClientName').innerText = order.client;
+    document.getElementById('mobileOSNumber').innerText = order.displayId || 'OS-Cloud';
+    
+    document.getElementById('mobileDeviceType').value = order.deviceType || '';
+    document.getElementById('mobileDeviceModel').value = order.deviceModel || '';
+    document.getElementById('mobileDeviceSerial').value = order.deviceSerial || '';
+    document.getElementById('mobileIssue').value = order.issue || '';
+    document.getElementById('mobileEstimatedDate').value = order.estimatedDate || '';
+    document.getElementById('mobileLaborPrice').value = order.laborPrice || 0;
+    document.getElementById('mobileStatus').value = order.status;
 
     // Atualiza badge de status
     window.handleMobileStatusChange();
@@ -1943,21 +1893,12 @@ window.openMobileDetails = function(id) {
     window.showMobileMenu();
 
     // Carrega peças
-    currentUsedParts = order ? JSON.parse(JSON.stringify(order.usedParts || [])) : [];
+    currentUsedParts = JSON.parse(JSON.stringify(order.usedParts || []));
     window.renderMobilePartsList();
     window.updateMobilePartSelector();
     window.calculateMobileTotal();
 
     document.getElementById('mobileDetailsModal').classList.add('active');
-};
-
-window.updateMobileClientSelector = function() {
-    const selector = document.getElementById('mobileOrderClientSelector');
-    if (!selector) return;
-    selector.innerHTML = '<option value="">Selecionar Cliente...</option>';
-    mockClients.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
-        selector.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-    });
 };
 
 window.closeMobileDetails = function() {
@@ -2019,6 +1960,7 @@ window.calculateMobileTotal = function() {
 };
 
 window.saveMobileDetails = async function() {
+    if (!currentMobileOrderId) return;
     const btn = document.getElementById('btnSaveMobile');
     const originalText = btn.innerText;
     btn.innerText = "Salvando...";
@@ -2031,44 +1973,25 @@ window.saveMobileDetails = async function() {
         issue: document.getElementById('mobileIssue').value,
         estimatedDate: document.getElementById('mobileEstimatedDate').value,
         laborPrice: parseFloat(document.getElementById('mobileLaborPrice').value) || 0,
-        status: document.getElementById('mobileStatus').value || 'Análise',
+        status: document.getElementById('mobileStatus').value,
         usedParts: currentUsedParts,
-        partsTotal: currentUsedParts.reduce((sum, p) => sum + (p.price || 0), 0),
-        finalValue: (parseFloat(document.getElementById('mobileLaborPrice').value) || 0) + currentUsedParts.reduce((sum, p) => sum + (p.price || 0), 0)
+        partsTotal: currentUsedParts.reduce((sum, p) => sum + p.price, 0),
+        finalValue: (parseFloat(document.getElementById('mobileLaborPrice').value) || 0) + currentUsedParts.reduce((sum, p) => sum + p.price, 0)
     };
 
     // Atualiza título da OS para manter padrão
     data.title = `${data.deviceType} ${data.deviceModel} (SN: ${data.deviceSerial}) ${data.issue ? `- ${data.issue}` : ''}`;
 
-    try {
-        if (currentMobileOrderId) {
-            // Edit Mode
-            const order = mockOrders.find(o => o.id === currentMobileOrderId);
-            if (data.status === 'Entregue' && (!order.exitDate)) {
-                data.exitDate = firebase.firestore.FieldValue.serverTimestamp();
-            }
-            await db.collection('orders').doc(currentMobileOrderId).update(data);
-        } else {
-            // Create Mode
-            const selectedClient = document.getElementById('mobileOrderClientSelector').value;
-            if (!selectedClient) {
-                showMessage("Por favor, selecione um cliente.", "Atenção");
-                btn.innerText = originalText;
-                btn.disabled = false;
-                return;
-            }
-            data.client = selectedClient;
-            data.date = new Date().toLocaleDateString('pt-BR');
-            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            
-            // Gerar Display ID sequencial (Opcionalmente, mas o Firestore fará no Cloud)
-            data.displayId = 'OS-' + Math.floor(1000 + Math.random() * 9000); 
+    // Log de saída se virou entregue
+    const order = mockOrders.find(o => o.id === currentMobileOrderId);
+    if (data.status === 'Entregue' && (!order.exitDate)) {
+        data.exitDate = firebase.firestore.FieldValue.serverTimestamp();
+    }
 
-            await db.collection('orders').add(data);
-        }
-        
+    try {
+        await db.collection('orders').doc(currentMobileOrderId).update(data);
         window.closeMobileDetails();
-        showMessage("Ordem de serviço salva com sucesso!", "Sucesso");
+        showMessage("Alterações salvas com sucesso!", "Sucesso");
     } catch (e) {
         console.error(e);
         showMessage("Erro ao salvar no servidor.", "Erro");

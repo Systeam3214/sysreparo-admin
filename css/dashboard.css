@@ -406,8 +406,6 @@
 .status-badge.pending { background: #fef3c7; color: #b45309; }
 .status-badge.completed { background: #d1fae5; color: #047857; }
 .status-badge.progress { background: #dbeafe; color: #1d4ed8; }
-.status-badge.delivered { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-.status-badge.danger { background: #fee2e2; color: #b91c1c; }
 
 /* Page Sections */
 .page-section {
@@ -1079,16 +1077,6 @@ body.dark-mode {
 }
 
 /* Modal Detalhes Mobile Custom (Solid & Premium) */
-.mobile-details-modal {
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-.mobile-details-modal.active {
-    display: flex;
-}
-
 .mobile-details-modal .modal-content {
     max-width: 95%;
     width: 480px;
@@ -1098,7 +1086,6 @@ body.dark-mode {
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
     border: none !important;
-    margin: auto;
 }
 
 .mobile-details-header {
