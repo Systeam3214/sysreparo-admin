@@ -20,6 +20,17 @@ body {
     background-color: var(--bg-white);
     color: var(--text-main);
     min-height: 100vh;
+    /* Native App Feel */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Permitir seleção apenas em campos de texto */
+input, textarea, [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 /* Split Layout */
