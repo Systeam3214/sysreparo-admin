@@ -38,15 +38,39 @@
         }
 
         h1 {
-            font-size: 24px; /* Título bem menor e mais focado */
+            font-size: 24px;
             font-weight: 700;
             text-transform: uppercase;
-            margin: 0 0 60px 0; /* Distância refinada para o botão */
-            letter-spacing: 5px; /* Espaçamento de letras maior dá um ar de UI de sistema super profissional */
+            margin: 0 0 8px 0;
+            letter-spacing: 5px;
             opacity: 0.95;
         }
 
-        /* Botão transformado em um "Ghost Button" (borda vazada) -> Estilo padrão de aplicações premium */
+        .auth-status {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        /* Timer no canto */
+        #timer-display {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: none; /* Aparece só no bloqueio */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Botão transformado em um "Ghost Button" */
         .btn-action {
             display: inline-block;
             background-color: transparent;
@@ -57,12 +81,19 @@
             font-weight: 600;
             text-transform: uppercase;
             text-decoration: none;
-            border-radius: 4px; /* Cantos menos redondos (estilo tech) */
+            border-radius: 4px;
             letter-spacing: 1.5px;
             transition: all 0.2s ease;
+            opacity: 0.3;
+            pointer-events: none; /* Bloqueado até o timer acabar */
         }
 
-        .btn-action:hover {
+        .btn-action.ready {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-action.ready:hover {
             color: #d32f2f;
             background-color: #ffffff;
             border-color: #ffffff;
@@ -76,28 +107,131 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Riot_Vanguard_Logo_Sep_2024.svg" alt="Riot Vanguard" class="logo-img">
         
         <h1>BLOQUEADO</h1>
+        <div class="auth-status">Auth blocked</div>
         
-        <a href="index.html" class="btn-action">Voltar</a>
+        <a href="index.html" class="btn-action" id="btnBack">Voltar</a>
     </div>
 
+    <div id="timer-display">LOCK: 10s</div>
+
     <script>
-        // Forçar Tela Cheia (Fullscreen)
-        function enforceFullscreen() {
+        let audioContext;
+        let alarmInterval;
+        let isLocked = false;
+        let remainingTime = 10;
+        let countdownInterval;
+
+        // Função para gerar o som de alarme/sereia (Web Audio API)
+        function startAlarmSound() {
+            if (audioContext) return; 
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            function playSiren() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'square'; 
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.5);
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+
+            playSiren();
+            alarmInterval = setInterval(playSiren, 600);
+        }
+
+        function startTimer() {
+            if (isLocked) return;
+            isLocked = true;
+            
+            const timerEl = document.getElementById('timer-display');
+            timerEl.style.display = 'block';
+
+            countdownInterval = setInterval(() => {
+                remainingTime--;
+                timerEl.innerText = `LOCK: ${remainingTime}s`;
+
+                if (remainingTime <= 0) {
+                    unlockSystem();
+                }
+            }, 10000 / 10); // Ajuste fino para os 10 segundos
+        }
+
+        function unlockSystem() {
+            clearInterval(countdownInterval);
+            clearInterval(alarmInterval);
+            isLocked = false;
+
+            // Liberar mouse e teclas
+            if (document.exitPointerLock) document.exitPointerLock();
+            if (navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
+
+            // Liberar botão
+            const btn = document.getElementById('btnBack');
+            btn.classList.add('ready');
+            
+            const timerEl = document.getElementById('timer-display');
+            timerEl.innerText = "ACCESS GRANTED";
+            setTimeout(() => timerEl.style.display = 'none', 2000);
+        }
+
+        async function lockEverything() {
+            if (remainingTime <= 0) return;
+
+            // Fullscreen
             let elem = document.documentElement;
             if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(err => console.log(err));
-                } else if (elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) {
-                    elem.msRequestFullscreen();
-                }
+                try {
+                    await elem.requestFullscreen();
+                } catch (err) { console.log("FS error", err); }
+            }
+
+            // Keyboard Lock (Bloquear Esc e outras teclas)
+            if (navigator.keyboard && navigator.keyboard.lock) {
+                navigator.keyboard.lock(['Escape', 'F11']).catch(e => console.log(e));
+            }
+
+            // Pointer Lock
+            if (document.body.requestPointerLock) {
+                document.body.requestPointerLock();
             }
         }
+
+        // Tentar re-travar se o usuário escapar do fullscreen antes do tempo
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && remainingTime > 0) {
+                // Notificar usuário ou apenas aguardar próximo clique
+                console.log("Tentativa de escape detectada.");
+            }
+        });
+
+        // Forçar interações
+        async function handleInteraction() {
+            startAlarmSound();
+            startTimer();
+            lockEverything();
+        }
         
-        document.addEventListener('click', enforceFullscreen);
-        document.addEventListener('keydown', enforceFullscreen);
-        document.addEventListener('touchstart', enforceFullscreen);
+        document.addEventListener('click', handleInteraction);
+        document.addEventListener('keydown', (e) => {
+            if (isLocked) e.preventDefault(); // Impede teclas comuns
+            handleInteraction();
+        });
+        document.addEventListener('touchstart', handleInteraction);
+
+        // Previnir fechamento da aba (Aviso do Navegador)
+        window.onbeforeunload = function() {
+            if (remainingTime > 0) return "O sistema está bloqueado. Deseja realmente sair?";
+        };
     </script>
 </body>
 </html>
