@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rstark-cache-v18';
+const CACHE_NAME = 'rstark-cache-v19';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const urlsToCache = [
   './css/style.css',
   './css/dashboard.css',
   './css/print-os.css',
+  './js/firebase-config.js',
   './js/script.js',
   './js/dashboard.js',
   './manifest.json',
@@ -18,7 +19,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache v18');
+        console.log('Opened cache v19');
         return cache.addAll(urlsToCache);
       })
   );
