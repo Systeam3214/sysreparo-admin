@@ -436,6 +436,7 @@ window.renderOrdersTable = function(filter = 'Todos') {
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
         tr.onclick = (e) => {
+            if (window.innerWidth <= 1024) return; // Bloqueia clique na linha no mobile
             if (!e.target.closest('.table-actions')) editOrder(order.id);
         };
 
@@ -476,8 +477,8 @@ window.renderOrdersTable = function(filter = 'Todos') {
 
                 <!-- Ações Mobile (Oculto no Desktop via CSS) -->
                 <div class="mobile-actions" style="display:none;">
-                    <button class="details-btn" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Ver Detalhes">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <button class="details-btn" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Gerenciar OS">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11l4 4m-4 0l4-4"></path></svg>
                     </button>
                 </div>
             </td>
@@ -1878,6 +1879,9 @@ window.openMobileDetails = function(id) {
     document.getElementById('mobileLaborPrice').value = order.laborPrice || 0;
     document.getElementById('mobileStatus').value = order.status;
 
+    // Reinicia para o Menu Principal
+    window.showMobileMenu();
+
     // Carrega peças
     currentUsedParts = JSON.parse(JSON.stringify(order.usedParts || []));
     window.renderMobilePartsList();
@@ -1996,4 +2000,31 @@ window.deleteMobileOrder = function() {
 
 window.handleMobileStatusChange = function() {
     // Espaço para triggers específicos de status no mobile se necessário
+};
+
+window.showMobileSection = function(sectionId) {
+    const sections = ['device', 'parts', 'finance'];
+    sections.forEach(s => {
+        const el = document.getElementById(`section${s.charAt(0).toUpperCase() + s.slice(1)}`);
+        if (el) el.style.display = 'none';
+    });
+    
+    document.getElementById('mobileDetailsMenu').style.display = 'none';
+    const targetSection = document.getElementById(`section${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`);
+    if (targetSection) targetSection.style.display = 'block';
+    
+    document.getElementById('btnMobileBack').style.display = 'flex';
+    document.getElementById('btnMobileClose').style.display = 'none';
+};
+
+window.showMobileMenu = function() {
+    const sections = ['device', 'parts', 'finance'];
+    sections.forEach(s => {
+        const el = document.getElementById(`section${s.charAt(0).toUpperCase() + s.slice(1)}`);
+        if (el) el.style.display = 'none';
+    });
+    
+    document.getElementById('mobileDetailsMenu').style.display = 'block';
+    document.getElementById('btnMobileBack').style.display = 'none';
+    document.getElementById('btnMobileClose').style.display = 'block';
 };

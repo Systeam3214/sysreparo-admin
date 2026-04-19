@@ -1076,48 +1076,103 @@ body.dark-mode {
     }
 }
 
-/* Modal Detalhes Mobile Custom */
+/* Modal Detalhes Mobile Custom (Solid & Premium) */
 .mobile-details-modal .modal-content {
     max-width: 95%;
-    width: 500px;
+    width: 480px;
     padding: 0;
     overflow: hidden;
+    background: #ffffff !important;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+    border: none !important;
 }
 
 .mobile-details-header {
-    background: var(--bg-light);
-    padding: 20px;
+    background: #ffffff;
+    padding: 24px 20px;
     border-bottom: 1px solid var(--border);
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .mobile-details-body {
     padding: 20px;
     max-height: 70vh;
     overflow-y: auto;
+    background: #ffffff;
 }
 
-.mobile-details-section {
-    margin-bottom: 24px;
+/* Grid de Menu em Cards */
+.mobile-menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.menu-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 12px;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.menu-card:active {
+    background: #f1f5f9;
+    transform: scale(0.98);
+}
+
+.menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-icon.blue { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+.menu-icon.orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+.menu-icon.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+.menu-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-text span {
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 15px;
+}
+
+.menu-text small {
+    color: var(--text-muted);
+    font-size: 11px;
 }
 
 .mobile-details-section h4 {
-    font-size: 14px;
-    color: var(--text-muted);
+    font-size: 13px;
+    color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(37, 99, 235, 0.1);
 }
 
 .mobile-details-footer {
     padding: 20px;
     border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    background: #ffffff;
 }
 
 .mobile-total-box {

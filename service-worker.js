@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rstark-cache-v11';
+const CACHE_NAME = 'rstark-cache-v13';
 const urlsToCache = [
   './',
   './index.html',
