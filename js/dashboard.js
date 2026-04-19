@@ -456,7 +456,8 @@ window.renderOrdersTable = function(filter = 'Todos') {
                 ${exitDateStr ? `<div style="font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px;">S: ${exitDateStr}</div>` : ''}
             </td>
             <td>
-                <div class="table-actions">
+                <!-- Ações Desktop -->
+                <div class="table-actions desktop-actions">
                     <button class="icon-btn edit" onclick="event.stopPropagation(); editOrder('${order.id}')" title="Editar Status/Detalhes">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
@@ -471,6 +472,13 @@ window.renderOrdersTable = function(filter = 'Todos') {
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     ` : ''}
+                </div>
+
+                <!-- Ações Mobile (Oculto no Desktop via CSS) -->
+                <div class="mobile-actions" style="display:none;">
+                    <button class="details-btn" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Ver Detalhes">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
                 </div>
             </td>
         `;
@@ -745,7 +753,7 @@ window.saveOrder = async function() {
             await db.collection('orders').doc(orderId).update({
                 title: device + (issue ? ` - ${issue}` : ''),
                 client: clientNameFinal,
-                status: statusVal || 'Aguardando Análise',
+                status: statusVal || 'Análise',
                 deviceType, deviceModel, deviceSerial, issue,
                 laborPrice, partsTotal,
                 finalValue: finalTotal,
@@ -772,7 +780,7 @@ window.saveOrder = async function() {
                 displayId: customId,
                 title: device + (issue ? ` - ${issue}` : ''),
                 client: clientNameFinal,
-                status: 'Aguardando Análise',
+                status: 'Análise',
                 date: dateStr,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 deviceType, deviceModel, deviceSerial, issue,
@@ -1568,15 +1576,13 @@ window.getOSPrintHTML = async function(id) {
     const exitDateStr = order.exitDate?.toDate 
         ? order.exitDate.toDate().toLocaleDateString('pt-BR') + ' ' + order.exitDate.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         : (order.exitDate instanceof Date ? order.exitDate.toLocaleDateString('pt-BR') : '—');
-
-    const laborPrice = order.laborPrice || 0;
+        const laborPrice = order.laborPrice || 0;
     const partsTotal = order.partsTotal || 0;
     const finalValue = order.finalValue || 0;
 
-    // Badge de status
-    let statusClass = 'pending';
-    if (order.status === 'Em Reparo') statusClass = 'progress';
-    else if (order.status === 'Pronto p/ Retirada') statusClass = 'ready';
+    if (order.status === 'Análise') statusClass = 'pending';
+    else if (order.status === 'Reparo') statusClass = 'progress';
+    else if (order.status === 'Pronto') statusClass = 'completed';
     else if (order.status === 'Entregue') statusClass = 'delivered';
 
     // Peças usadas
@@ -1850,4 +1856,144 @@ window.downloadOSPDF = async function(id) {
         // Limpa após gerar se necessário (opcional)
         // printContainer.innerHTML = '';
     });
+};
+
+// --- LÓGICA DO NOVO MODAL DE DETALHES MOBILE ---
+let currentMobileOrderId = null;
+
+window.openMobileDetails = function(id) {
+    const order = mockOrders.find(o => o.id === id);
+    if (!order) return;
+
+    currentMobileOrderId = id;
+    document.getElementById('mobileOrderId').value = id;
+    document.getElementById('mobileClientName').innerText = order.client;
+    document.getElementById('mobileOSNumber').innerText = order.displayId || 'OS-Cloud';
+    
+    document.getElementById('mobileDeviceType').value = order.deviceType || '';
+    document.getElementById('mobileDeviceModel').value = order.deviceModel || '';
+    document.getElementById('mobileDeviceSerial').value = order.deviceSerial || '';
+    document.getElementById('mobileIssue').value = order.issue || '';
+    document.getElementById('mobileEstimatedDate').value = order.estimatedDate || '';
+    document.getElementById('mobileLaborPrice').value = order.laborPrice || 0;
+    document.getElementById('mobileStatus').value = order.status;
+
+    // Carrega peças
+    currentUsedParts = JSON.parse(JSON.stringify(order.usedParts || []));
+    window.renderMobilePartsList();
+    window.updateMobilePartSelector();
+    window.calculateMobileTotal();
+
+    document.getElementById('mobileDetailsModal').classList.add('active');
+};
+
+window.closeMobileDetails = function() {
+    document.getElementById('mobileDetailsModal').classList.remove('active');
+    currentMobileOrderId = null;
+};
+
+window.updateMobilePartSelector = function() {
+    const selector = document.getElementById('mobilePartSelector');
+    if (!selector) return;
+    selector.innerHTML = '<option value="">Peça...</option>';
+    mockParts.forEach(p => {
+        if (p.stock > 0) {
+            selector.innerHTML += `<option value="${p.id}">${p.name} - R$ ${p.price.toFixed(2)}</option>`;
+        }
+    });
+};
+
+window.addPartToMobileOrder = function() {
+    const selector = document.getElementById('mobilePartSelector');
+    const partId = selector.value;
+    if (!partId) return;
+    const part = mockParts.find(p => p.id === partId);
+    if (part) {
+        currentUsedParts.push({ id: part.id, name: part.name, price: part.price });
+        window.renderMobilePartsList();
+        window.calculateMobileTotal();
+        selector.value = '';
+    }
+};
+
+window.removePartFromMobileOrder = function(index) {
+    currentUsedParts.splice(index, 1);
+    window.renderMobilePartsList();
+    window.calculateMobileTotal();
+};
+
+window.renderMobilePartsList = function() {
+    const list = document.getElementById('mobilePartsList');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    currentUsedParts.forEach((p, index) => {
+        const li = document.createElement('li');
+        li.style = "display: flex; justify-content: space-between; padding: 6px 10px; background: var(--bg-light); border-radius: 6px; font-size: 13px;";
+        li.innerHTML = `
+            <span>${p.name} (R$ ${p.price.toFixed(2)})</span>
+            <span onclick="removePartFromMobileOrder(${index})" style="color: #ef4444; font-weight: bold; padding: 0 4px;">&times;</span>
+        `;
+        list.appendChild(li);
+    });
+};
+
+window.calculateMobileTotal = function() {
+    const labor = parseFloat(document.getElementById('mobileLaborPrice').value) || 0;
+    const parts = currentUsedParts.reduce((sum, p) => sum + (p.price || 0), 0);
+    const total = labor + parts;
+    document.getElementById('mobileTotalDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+};
+
+window.saveMobileDetails = async function() {
+    if (!currentMobileOrderId) return;
+    const btn = document.getElementById('btnSaveMobile');
+    const originalText = btn.innerText;
+    btn.innerText = "Salvando...";
+    btn.disabled = true;
+
+    const data = {
+        deviceType: document.getElementById('mobileDeviceType').value,
+        deviceModel: document.getElementById('mobileDeviceModel').value,
+        deviceSerial: document.getElementById('mobileDeviceSerial').value,
+        issue: document.getElementById('mobileIssue').value,
+        estimatedDate: document.getElementById('mobileEstimatedDate').value,
+        laborPrice: parseFloat(document.getElementById('mobileLaborPrice').value) || 0,
+        status: document.getElementById('mobileStatus').value,
+        usedParts: currentUsedParts,
+        partsTotal: currentUsedParts.reduce((sum, p) => sum + p.price, 0),
+        finalValue: (parseFloat(document.getElementById('mobileLaborPrice').value) || 0) + currentUsedParts.reduce((sum, p) => sum + p.price, 0)
+    };
+
+    // Atualiza título da OS para manter padrão
+    data.title = `${data.deviceType} ${data.deviceModel} (SN: ${data.deviceSerial}) ${data.issue ? `- ${data.issue}` : ''}`;
+
+    // Log de saída se virou entregue
+    const order = mockOrders.find(o => o.id === currentMobileOrderId);
+    if (data.status === 'Entregue' && (!order.exitDate)) {
+        data.exitDate = firebase.firestore.FieldValue.serverTimestamp();
+    }
+
+    try {
+        await db.collection('orders').doc(currentMobileOrderId).update(data);
+        window.closeMobileDetails();
+        showMessage("Alterações salvas com sucesso!", "Sucesso");
+    } catch (e) {
+        console.error(e);
+        showMessage("Erro ao salvar no servidor.", "Erro");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+};
+
+window.deleteMobileOrder = function() {
+    if (!currentMobileOrderId) return;
+    window.closeMobileDetails();
+    // Reutiliza a função de deletar padrão que já tem confirmação
+    window.deleteOrder(currentMobileOrderId);
+};
+
+window.handleMobileStatusChange = function() {
+    // Espaço para triggers específicos de status no mobile se necessário
 };
