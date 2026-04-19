@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM - Central de Atualizações</title>
+    <link rel="stylesheet" href="css/style.css?v=18">
+    <link rel="stylesheet" href="css/dashboard.css?v=18">
+    <style>
+        body { background-color: #0f172a; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .admin-panel { width: 100%; max-width: 600px; background: #1e293b; border-radius: 20px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; font-size: 14px; font-weight: 500; color: #94a3b8; margin-bottom: 8px; }
+        .input-control { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: white; outline: none; transition: 0.2s; }
+        .input-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        textarea.input-control { height: 120px; resize: none; }
+        .btn-row { display: flex; gap: 12px; margin-top: 10px; }
+        .primary-btn { flex: 1; padding: 14px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .primary-btn:hover { background: #2563eb; transform: translateY(-2px); }
+        .secondary-btn { padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; cursor: pointer; }
+        .status-msg { margin-top: 15px; font-size: 14px; text-align: center; display: none; }
+        .badge { background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <h1>
+            <svg viewBox="0 0 24 24" width="30" height="30" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Central ADM <span class="badge">Master</span>
+        </h1>
+
+        <!-- Seção de Aviso -->
+        <div class="form-group">
+            <label>Mensagem de Atualização / Aviso Global</label>
+            <textarea id="updateMessage" class="input-control" placeholder="Descreva aqui as novidades, avisos de manutenção ou mudanças no sistema..."></textarea>
+        </div>
+        <button class="primary-btn" onclick="publishUpdate()" id="btnPublish">Publicar Aviso Agora</button>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+        <!-- Alterar Senha Path -->
+        <div class="form-group">
+            <label>Alterar Senha de Acesso (Path)</label>
+            <input type="password" id="newPath" class="input-control" placeholder="Digite a nova senha de segurança...">
+        </div>
+        <div class="btn-row">
+            <button class="secondary-btn" style="flex: 1;" onclick="updatePath()" id="btnPath">Salvar Nova Senha</button>
+            <button class="secondary-btn" onclick="location.href='dashboard.html'">Voltar ao Painel</button>
+        </div>
+
+        <div id="statusMsg" class="status-msg"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUbFlJpP894ergBQoxaXJHttFyDfrYYd4",
+            authDomain: "sysreparo-admin.firebaseapp.com",
+            projectId: "sysreparo-admin",
+            storageBucket: "sysreparo-admin.firebasestorage.app",
+            messagingSenderId: "675962211650",
+            appId: "1:675962211650:web:5f429a4a72d8ad8a6b0cdb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMsg');
+            el.innerText = msg;
+            el.style.display = 'block';
+            el.style.color = isError ? '#ef4444' : '#10b981';
+            setTimeout(() => el.style.display = 'none', 4000);
+        }
+
+        async function publishUpdate() {
+            const msg = document.getElementById('updateMessage').value.trim();
+            const btn = document.getElementById('btnPublish');
+            if (!msg) return showStatus("Digite uma mensagem!", true);
+
+            btn.disabled = true;
+            btn.innerText = "Publicando...";
+
+            try {
+                // Desativa avisos anteriores
+                const old = await db.collection('announcements').where('active', '==', true).get();
+                const batch = db.batch();
+                old.forEach(doc => batch.update(doc.ref, { active: false }));
+                
+                // Cria novo
+                const newRef = db.collection('announcements').doc();
+                batch.set(newRef, {
+                    message: msg,
+                    active: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                await batch.commit();
+                document.getElementById('updateMessage').value = '';
+                showStatus("Aviso publicado com sucesso! Todos os usuários verão ao abrir o App.");
+            } catch (e) {
+                console.error(e);
+                showStatus("Erro ao publicar. Verifique suas permissões.", true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Publicar Aviso Agora";
+            }
+        }
+
+        async function updatePath() {
+            const newP = document.getElementById('newPath').value.trim();
+            const btn = document.getElementById('btnPath');
+            if (!newP) return showStatus("Digite a nova senha!", true);
+
+            btn.disabled = true;
+            btn.innerText = "Salvando...";
+
+            try {
+                await db.collection('system_config').doc('global').set({
+                    admin_path: newP
+                }, { merge: true });
+                document.getElementById('newPath').value = '';
+                showStatus("Senha de acesso (Path) alterada com sucesso!");
+            } catch (e) {
+                console.error(e);
+                showStatus("Erro ao alterar senha no servidor.", true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Salvar Nova Senha";
+            }
+        }
+
+        // Proteção Extra: Verifica se é ADM
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (!doc.exists || doc.data().tag !== 'adm') {
+                alert("Acesso negado. Apenas administradores.");
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

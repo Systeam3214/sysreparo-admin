@@ -429,6 +429,16 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- Card de Atualizações (ADM Only) -->
+                    <div class="settings-card" data-auth="adm">
+                        <h3>
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            Atualizações do Sistema
+                        </h3>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Gerenciar avisos globais e versão do sistema.</p>
+                        <button class="action-btn primary" onclick="openPathModal()" style="width: 100%; justify-content: center;">Painel de Atualizações</button>
+                    </div>
                 </div>
             </section>
 
@@ -1068,12 +1078,53 @@
         </div>
     </div>
 
+    <!-- Modal de Senha ADM (Path) -->
+    <div class="modal-overlay" id="pathModal">
+        <div class="modal-content" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3>Acesso Restrito</h3>
+                <button class="close-btn" onclick="closeModal('pathModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Informe o <b>Path</b> de segurança para acessar o painel de atualizações.</p>
+                <div class="form-group">
+                    <label>Path (Senha)</label>
+                    <input type="password" id="adminPathInput" class="input-control" placeholder="Digite aqui...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn secondary" onclick="closeModal('pathModal')">Cancelar</button>
+                <button class="action-btn primary" onclick="verifyAdminPath()">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Avisos de Inicialização (PWA) -->
+    <div class="modal-overlay" id="startupAnnouncementModal" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 450px; border: 2px solid var(--primary);">
+            <div class="modal-header">
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--primary)" stroke-width="2" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Comunicado Importante
+                </h3>
+            </div>
+            <div class="modal-body">
+                <div id="announcementText" style="font-size: 15px; line-height: 1.6; color: var(--text-main); white-space: pre-wrap;">
+                    Carregando informativo...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn primary" style="width: 100%; border-radius: 10px;" onclick="closeModal('startupAnnouncementModal')">Entendi, Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="js/dashboard.js?v=10"></script>
+    <script src="js/dashboard.js?v=18"></script>
 
     <!-- Service Worker Registration -->
     <script>

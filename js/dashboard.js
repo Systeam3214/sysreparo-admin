@@ -31,6 +31,8 @@ let currentFilter = 'Todos';
 let currentUserTag = 'worker'; // Global para controle de UI dinâmica
 let currentUsedParts = []; // Lista temporária para o modal de OS
 let lastSyncTime = localStorage.getItem('lastSyncTime') || '--:--';
+const DEFAULT_ADMIN_PATH = "rstark2026"; 
+const ADMIN_PANEL_URL = "4347fwdv7ts6ctdtgfyvedysyer67637237723_auth_admin_panel_secure.html";
 
 function updateSyncUI() {
     const statusDot = document.querySelector('.status-dot');
@@ -235,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateSyncUI(); // Inicializa UI
+    checkForAnnouncements(); // Verifica avisos de ADM
 });
 
 // --- LOGOUT ---
@@ -244,6 +247,63 @@ window.handleLogout = function() {
         window.location.href = 'index.html';
     });
 };
+
+// --- FUNÇÕES DE ATUALIZAÇÃO E ADM (PATH) ---
+window.openPathModal = function() {
+    document.getElementById('adminPathInput').value = '';
+    document.getElementById('pathModal').classList.add('active');
+};
+
+window.verifyAdminPath = async function() {
+    const input = document.getElementById('adminPathInput').value.trim();
+    if (!input) return;
+
+    try {
+        const configDoc = await db.collection('system_config').doc('global').get();
+        let correctPath = DEFAULT_ADMIN_PATH;
+
+        if (configDoc.exists && configDoc.data().admin_path) {
+            correctPath = configDoc.data().admin_path;
+        }
+
+        if (input === correctPath) {
+            window.location.href = ADMIN_PANEL_URL;
+        } else {
+            alert("Path incorreto. Acesso negado.");
+        }
+    } catch (e) {
+        console.error("Erro ao validar path:", e);
+        // Fallback para o default se o firebase falhar (offline por exemplo)
+        if (input === DEFAULT_ADMIN_PATH) {
+            window.location.href = ADMIN_PANEL_URL;
+        } else {
+            alert("Erro de conexão ou Path inválido.");
+        }
+    }
+};
+
+async function checkForAnnouncements() {
+    try {
+        const snapshot = await db.collection('announcements')
+            .where('active', '==', true)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            const modal = document.getElementById('startupAnnouncementModal');
+            const textArea = document.getElementById('announcementText');
+            
+            if (modal && textArea) {
+                textArea.innerText = data.message;
+                modal.classList.add('active');
+            }
+        }
+    } catch (e) {
+        console.warn("Sem avisos ativos ou erro de permissão:", e);
+    }
+}
 
 // --- LÓGICA DE BUSCA GLOBAL ---
 window.filterOrders = function(query) {
@@ -587,6 +647,11 @@ function setupFirebaseListeners() {
         console.error("Erro no listener de Peças:", error);
     });
 }
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+};
 
 // --- FUNÇÕES GLOBAIS DE MODAL E CRUD PRINCIPAIS ---
 
