@@ -1,8 +1,27 @@
-const analytics = typeof firebase.analytics === 'function' ? firebase.analytics() : null;
+const firebaseConfig = {
+    apiKey: "AIzaSyDUbFlJpP894ergBQoxaXJHttFyDfrYYd4",
+    authDomain: "sysreparo-admin.firebaseapp.com",
+    projectId: "sysreparo-admin",
+    storageBucket: "sysreparo-admin.firebasestorage.app",
+    messagingSenderId: "675962211650",
+    appId: "1:675962211650:web:5f429a4a72d8ad8a6b0cdb",
+    measurementId: "G-XGPL9M66VR"
+};
+
+// Inicialização Firebase usando o objeto Compativel "firebase" que veio pelo Script HTML
+firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
 const db = firebase.firestore();
 
-// Habilitar Persistência Offline do Firestore (Novo método para evitar avisos)
-db.settings({ cache: firebase.firestore.persistentLocalCache({ synchronizeTabs: true }) });
+// Habilitar Persistência Offline do Firestore
+db.enablePersistence({ synchronizeTabs: true })
+    .catch((err) => {
+        if (err.code == 'failed-precondition') {
+            console.warn('Persistência falhou: múltiplas abas abertas');
+        } else if (err.code == 'unimplemented') {
+            console.warn('Persistência não suportada pelo navegador');
+        }
+    });
 
 // Estado reativo global
 let mockOrders = [];
@@ -268,10 +287,6 @@ async function checkPermissions(user, isOffline = false) {
         userTag = user.tag || 'worker';
         userName = user.name || 'Técnico';
     } else {
-        if (!user || !user.uid) {
-            console.warn("Usuário sem UID válido. Pulando verificação de permissões.");
-            return;
-        }
         try {
             const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.exists) {
@@ -855,7 +870,6 @@ window.editOrder = function(id) {
 
 window.deleteOrder = async function(id) {
     showConfirm('Atenção: Tem certeza que deseja apagar permanentemente esta Ordem de Serviço?', async () => {
-        if (!id) return;
         try {
             await db.collection('orders').doc(id).delete();
         } catch(e) {
