@@ -1011,6 +1011,11 @@ select.input-control {
     color: #10b981;
 }
 
+.icon-btn.print:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
 /* Settings Page */
 .settings-grid {
     display: grid;
@@ -1400,5 +1405,23 @@ body.is-offline .offline-indicator {
     to {
         opacity: 1;
         transform: translate(-50%, 0);
+    }
+}
+
+/* Restringir botões de exclusão e impressão no modal apenas para mobile */
+@media (min-width: 769px) {
+    #btnDeleteOrder, 
+    #btnDeleteClient, 
+    #btnDeletePart,
+    #btnPrintOrder {
+        display: none !important;
+    }
+}
+
+/* Esconder lixeira e impressora nas tabelas apenas para mobile */
+@media (max-width: 768px) {
+    .data-table .icon-btn.delete,
+    .data-table .icon-btn.print {
+        display: none !important;
     }
 }

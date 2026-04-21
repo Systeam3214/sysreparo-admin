@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Limpa bypass se estamos online e com usuário real
             localStorage.removeItem('rstark_current_offline_session');
+            checkPermissions(user);
             setupFirebaseListeners();
         }
     });
@@ -653,6 +654,14 @@ window.openOrderModal = function() {
     document.getElementById('newClientAddress').value = '';
     document.getElementById('newClientNumber').value = '';
     document.getElementById('newClientComplement').value = '';
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeleteOrder');
+    if (btnDelete) btnDelete.style.display = 'none';
+    const btnPrint = document.getElementById('btnPrintOrder');
+    if (btnPrint) btnPrint.style.display = 'none';
+    const btnSave = document.getElementById('btnSaveOrder');
+    if (btnSave) btnSave.innerText = 'Emitir Ordem';
 
     document.getElementById('orderModal').classList.add('active');
 };
@@ -882,7 +891,31 @@ window.editOrder = function(id) {
     document.getElementById('orderEstimatedDate').value = order.estimatedDate || '';
     document.getElementById('orderStatusGroup').style.display = 'block';
     document.getElementById('orderModal').querySelector('h2').innerText = `Editar Ordem: ${order.displayId}`;
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeleteOrder');
+    if (btnDelete) btnDelete.style.display = (currentUserTag === 'adm') ? 'block' : 'none';
+    const btnPrint = document.getElementById('btnPrintOrder');
+    if (btnPrint) btnPrint.style.display = 'block';
+    const btnSave = document.getElementById('btnSaveOrder');
+    if (btnSave) btnSave.innerText = 'Salvar';
+
     document.getElementById('orderModal').classList.add('active');
+};
+
+window.printOrderFromModal = function() {
+    const id = document.getElementById('orderId').value;
+    if (id) {
+        window.printOS(id);
+    }
+};
+
+window.deleteOrderFromModal = function() {
+    const id = document.getElementById('orderId').value;
+    if (id) {
+        window.deleteOrder(id);
+        window.closeOrderModal();
+    }
 };
 
 window.deleteOrder = async function(id) {
@@ -915,6 +948,13 @@ window.openClientModal = function() {
 
     document.getElementById('clientStatus').value = 'Ativo';
     document.getElementById('clientModalTitle').innerText = 'Novo Cliente';
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeleteClient');
+    if (btnDelete) btnDelete.style.display = 'none';
+    const btnSave = document.getElementById('btnSaveClient');
+    if (btnSave) btnSave.innerText = 'Salvar Cliente';
+
     document.getElementById('clientModal').classList.add('active');
 };
 
@@ -996,7 +1036,22 @@ window.editClient = function(id) {
     document.getElementById('clientStatus').value = client.status || 'Ativo';
     
     document.getElementById('clientModalTitle').innerText = 'Editar Cliente';
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeleteClient');
+    if (btnDelete) btnDelete.style.display = (currentUserTag === 'adm') ? 'block' : 'none';
+    const btnSave = document.getElementById('btnSaveClient');
+    if (btnSave) btnSave.innerText = 'Salvar';
+
     document.getElementById('clientModal').classList.add('active');
+};
+
+window.deleteClientFromModal = function() {
+    const id = document.getElementById('clientId').value;
+    if (id) {
+        window.deleteClient(id);
+        window.closeClientModal();
+    }
 };
 
 window.deleteClient = async function(id) {
@@ -1372,6 +1427,13 @@ window.openPartModal = function() {
     document.getElementById('partPrice').value = '';
     document.getElementById('partStock').value = '';
     document.getElementById('partModalTitle').innerText = 'Nova Peça';
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeletePart');
+    if (btnDelete) btnDelete.style.display = 'none';
+    const btnSave = document.getElementById('btnSavePart');
+    if (btnSave) btnSave.innerText = 'Salvar Peça';
+
     document.getElementById('partModal').classList.add('active');
 };
 
@@ -1423,7 +1485,22 @@ window.editPart = function(id) {
     document.getElementById('partPrice').value = part.price;
     document.getElementById('partStock').value = part.stock;
     document.getElementById('partModalTitle').innerText = 'Editar Peça';
+    
+    // Configura botões do rodapé
+    const btnDelete = document.getElementById('btnDeletePart');
+    if (btnDelete) btnDelete.style.display = (currentUserTag === 'adm') ? 'block' : 'none';
+    const btnSave = document.getElementById('btnSavePart');
+    if (btnSave) btnSave.innerText = 'Salvar';
+
     document.getElementById('partModal').classList.add('active');
+};
+
+window.deletePartFromModal = function() {
+    const id = document.getElementById('partId').value;
+    if (id) {
+        window.deletePart(id);
+        window.closePartModal();
+    }
 };
 
 window.deletePart = function(id) {
