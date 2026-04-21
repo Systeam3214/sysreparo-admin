@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Limpa bypass se estamos online e com usuário real
             localStorage.removeItem('rstark_current_offline_session');
+            loadNotifySettings();
             checkPermissions(user);
             setupFirebaseListeners();
         }
@@ -269,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Offline: Modo de dados local ativado');
     });
 
+    window.initCustomSelectors();
     updateSyncUI(); // Inicializa UI
 });
 
@@ -556,6 +558,9 @@ window.renderClientsTable = function() {
     });
 };
 
+let isInitialClientsLoad = true;
+let isInitialOrdersLoad = true;
+
 function setupFirebaseListeners() {
     const updateSyncTimestamp = (snapshot) => {
         if (!snapshot.metadata.fromCache) {
@@ -574,6 +579,16 @@ function setupFirebaseListeners() {
         });
         window.renderClientsTable();
         if (window.updateRecentActivities) window.updateRecentActivities();
+
+        if (!isInitialClientsLoad) {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    window.showToast("Novo Cliente", `${data.name} cadastrado no sistema.`, 'success');
+                }
+            });
+        }
+        isInitialClientsLoad = false;
     }, (error) => {
         console.error("Erro no listener de clientes:", error);
     });
@@ -592,6 +607,17 @@ function setupFirebaseListeners() {
         if (window.updateRecentActivities) window.updateRecentActivities();
         // Atualiza a tabela financeira se estiver visível ou se houver dados novos
         window.renderFinancialTable();
+
+        if (!isInitialOrdersLoad) {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    const model = data.deviceModel || 'Aparelho';
+                    window.showToast("Nova Ordem", `A OS do(a) ${model} foi emitida.`, 'success');
+                }
+            });
+        }
+        isInitialOrdersLoad = false;
     }, (error) => {
         console.error("Erro no listener de Ordens:", error);
     });
@@ -630,13 +656,14 @@ window.openOrderModal = function() {
     window.updateOrderPartSelector();
 
     document.getElementById('orderStatusGroup').style.display = 'none';
+    document.getElementById('orderStatus').value = 'Análise';
+    document.getElementById('orderStatusSelectorDisplay').querySelector('span').innerText = 'Análise';
+    
+    document.getElementById('orderDeviceType').value = 'TV';
+    document.getElementById('deviceTypeSelectorDisplay').querySelector('span').innerText = 'TV';
     document.getElementById('orderModal').querySelector('h2').innerText = 'Nova Ordem de Serviço';
 
-    const clientSelect = document.getElementById('orderClientSelect');
-    clientSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
-    mockClients.forEach(c => {
-        clientSelect.innerHTML += `<option value="${c.name}">${c.name} - ${c.phone}</option>`;
-    });
+    window.updateClientSelectorList();
 
     isCreatingNewClientInsideOrder = false;
     document.getElementById('newClientSection').style.display = 'none';
@@ -839,18 +866,7 @@ window.editOrder = function(id) {
     
     document.getElementById('orderId').value = order.id;
     
-    const clientSelect = document.getElementById('orderClientSelect');
-    clientSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
-    let clientFound = false;
-    mockClients.forEach(c => {
-        clientSelect.innerHTML += `<option value="${c.name}">${c.name} - ${c.phone}</option>`;
-        if (order.client === c.name) clientFound = true;
-    });
-
-    if (!clientFound && order.client) {
-        clientSelect.innerHTML += `<option value="${order.client}">${order.client} (Cadastro Avulso)</option>`;
-    }
-    clientSelect.value = order.client;
+    window.updateClientSelectorList(order.client);
 
     // Garante máscaras nos campos de novos clientes se estiverem abertos
     const newPhone = document.getElementById('newClientPhone');
@@ -876,6 +892,8 @@ window.editOrder = function(id) {
     }
 
     document.getElementById('orderDeviceType').value = defType;
+    document.getElementById('deviceTypeSelectorDisplay').querySelector('span').innerText = defType;
+
     document.getElementById('orderDeviceModel').value = defModel;
     document.getElementById('orderDeviceSerial').value = defSerial;
     document.getElementById('orderIssue').value = defIssue;
@@ -887,9 +905,21 @@ window.editOrder = function(id) {
     window.updateOrderPartSelector();
     window.calculateOrderTotal();
     
-    document.getElementById('orderStatus').value = order.status || 'Aguardando Análise';
+    const status = order.status || 'Análise';
+    document.getElementById('orderStatus').value = status;
+    document.getElementById('orderStatusSelectorDisplay').querySelector('span').innerText = status;
+
     document.getElementById('orderEstimatedDate').value = order.estimatedDate || '';
     document.getElementById('orderStatusGroup').style.display = 'block';
+    
+    // Mostra botão de finalizar apenas se não estiver entregue
+    const btnFinalize = document.getElementById('btnFinalizeOrder');
+    if (order.status !== 'Entregue') {
+        btnFinalize.style.display = 'flex';
+    } else {
+        btnFinalize.style.display = 'none';
+    }
+
     document.getElementById('orderModal').querySelector('h2').innerText = `Editar Ordem: ${order.displayId}`;
     
     // Configura botões do rodapé
@@ -941,6 +971,9 @@ window.openClientModal = function() {
     document.getElementById('clientAddress').value = '';
     document.getElementById('clientNumber').value = '';
     document.getElementById('clientComplement').value = '';
+    
+    document.getElementById('clientStatus').value = 'Ativo';
+    document.getElementById('clientStatusSelectorDisplay').querySelector('span').innerText = 'Ativo';
     
     // Novo: Reset Toggle de Telefone
     document.getElementById('residentialPhoneGroup').style.display = 'none';
@@ -1034,6 +1067,7 @@ window.editClient = function(id) {
     }
 
     document.getElementById('clientStatus').value = client.status || 'Ativo';
+    document.getElementById('clientStatusSelectorDisplay').querySelector('span').innerText = client.status || 'Ativo';
     
     document.getElementById('clientModalTitle').innerText = 'Editar Cliente';
     
@@ -1133,8 +1167,63 @@ window.showMessage = function(message, title = 'Aviso', onOk = null) {
     confirmBtn.addEventListener('click', handleOk);
 };
 
-window.handleStatusChange = function() {
-    // Pode ser usado para lógica futura ao mudar status no modal
+// --- SISTEMA DE NOTIFICAÇÕES (TOAST) ---
+window.showToast = function(title, message, type = 'info') {
+    const enabled = localStorage.getItem('rstark_notify_in_app') !== 'false';
+    if (!enabled) return;
+
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    let icon = '';
+    if (type === 'success') icon = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    else if (type === 'warning') icon = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    else icon = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Remove após 4 segundos
+    setTimeout(() => {
+        toast.classList.add('fadeOut');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+};
+
+window.saveNotifySettings = function() {
+    const inApp = document.getElementById('settingNotifyInApp').checked;
+    localStorage.setItem('rstark_notify_in_app', inApp);
+};
+
+window.loadNotifySettings = function() {
+    const inApp = localStorage.getItem('rstark_notify_in_app') !== 'false';
+    const el = document.getElementById('settingNotifyInApp');
+    if (el) el.checked = inApp;
+};
+
+window.clearLocalCache = function() {
+    window.showConfirm("Tem certeza? Isso apagará as sessões offline salvas, removerá o bypass de login provisório, apagará todas definições de interface e em seguida irá recarregar a sessão desde a estaca zero.", () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('index.html'); // força o usuário para o login novamente
+    });
+};
+
+
+window.handleStatusChange = function(newStatus) {
+    if (newStatus === 'Entregue') {
+        window.openFinalizeModal();
+    }
 };
 
 // --- LÓGICA FINANCEIRA ---
@@ -1182,31 +1271,33 @@ function renderFinancialTable() {
     }
 
     filtered.forEach(order => {
+        // Lógica de Garantia Customizável
         const exitDate = order.exitDate.toDate ? order.exitDate.toDate() : new Date(order.exitDate);
         const exitDateStr = exitDate.toLocaleDateString('pt-BR') + ' ' + exitDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
         
-        // Lógica de Garantia (3 dias = 72 horas)
+        const warrantyDays = order.warrantyDays || 90;
+        const expirationDate = new Date(exitDate);
+        expirationDate.setDate(expirationDate.getDate() + warrantyDays);
+        
         const now = new Date();
-        const diffTime = Math.abs(now - exitDate);
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
-        const inWarranty = diffDays <= 3;
+        const inWarranty = now <= expirationDate;
         
         totalFaturado += (order.finalValue || 0);
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <div style="font-weight: 500;">${order.title}</div>
-                <div style="font-size: 12px; color: var(--text-muted);">${order.displayId}</div>
+                <div style="font-weight: 600; color: var(--text-main);">${order.title}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${order.displayId}</div>
             </td>
             <td>${order.client}</td>
-            <td><span class="status-badge completed">${order.status}</span></td>
+            <td><span class="status-badge delivered">${order.status}</span></td>
             <td>${exitDateStr}</td>
-            <td style="font-weight: 600; color: var(--success);">R$ ${(order.finalValue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td style="font-weight: 700; color: var(--success); font-size: 15px;">R$ ${(order.finalValue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
             <td>
                 ${inWarranty 
-                    ? '<span class="status-badge progress" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Válida</span>' 
-                    : '<span class="status-badge" style="background: #f3f4f6; color: #9ca3af;">Expirada</span>'}
+                    ? `<span class="warranty-status warranty-valid">Válida (até ${expirationDate.toLocaleDateString('pt-BR')})</span>` 
+                    : `<span class="warranty-status warranty-expired">Expirada (${expirationDate.toLocaleDateString('pt-BR')})</span>`}
             </td>
             <td>
                 <div style="display: flex; gap: 8px;">
@@ -1249,6 +1340,7 @@ window.openStaffModal = function() {
     document.getElementById('staffEmail').value = '';
     document.getElementById('staffPassword').value = '';
     document.getElementById('staffTag').value = 'worker';
+    document.getElementById('staffTagSelectorDisplay').querySelector('span').innerText = 'Funcionário';
     document.getElementById('staffModal').classList.add('active');
 };
 
@@ -1510,14 +1602,215 @@ window.deletePart = function(id) {
 };
 
 // --- LÓGICA DE SELEÇÃO DE PEÇAS NA OS ---
-window.updateOrderPartSelector = function() {
-    const selector = document.getElementById('orderPartSelector');
-    if (!selector) return;
-    selector.innerHTML = '<option value="">Escolha uma peça do estoque...</option>';
-    mockParts.forEach(p => {
-        if (p.stock > 0) {
-            selector.innerHTML += `<option value="${p.id}">${p.name} (${p.model}) - R$ ${p.price.toFixed(2)}</option>`;
+window.updateOrderPartSelector = function(filter = '') {
+    const list = document.getElementById('partSelectorList');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const q = filter.toLowerCase();
+    
+    const filtered = mockParts.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        p.model.toLowerCase().includes(q)
+    );
+
+    if (filtered.length === 0) {
+        list.innerHTML = '<li class="empty-state" style="padding: 16px; font-size: 13px;">Nenhuma peça encontrada.</li>';
+        return;
+    }
+
+    filtered.forEach(p => {
+        const isOutOfStock = (p.stock || 0) <= 0;
+        const li = document.createElement('li');
+        li.className = 'selector-item';
+        if (isOutOfStock) li.style.opacity = '0.6';
+        
+        li.innerHTML = `
+            <div class="item-title">${p.name}</div>
+            <div class="item-subtitle">${p.model} - R$ ${p.price.toFixed(2)}</div>
+            <div class="item-badge">
+                <span class="status-badge ${isOutOfStock ? 'pending' : 'completed'}">
+                    ${p.stock || 0} em estoque
+                </span>
+            </div>
+        `;
+        
+        li.onclick = () => {
+            if (isOutOfStock) {
+                showMessage("Esta peça está sem estoque!", "Aviso");
+                return;
+            }
+            document.getElementById('orderPartSelector').value = p.id;
+            document.getElementById('partSelectorDisplay').querySelector('span').innerText = p.name;
+            document.getElementById('partSelectorWrapper').classList.remove('active');
+            window.addPartToOrder();
+        };
+        list.appendChild(li);
+    });
+};
+
+window.updateClientSelectorList = function(selectedName = '', filter = '') {
+    const list = document.getElementById('clientSelectorList');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const q = filter.toLowerCase();
+    
+    let filtered = mockClients.filter(c => 
+        c.name.toLowerCase().includes(q) || 
+        c.phone.toLowerCase().includes(q)
+    );
+
+    if (filtered.length === 0 && q === '') {
+        list.innerHTML = '<li class="empty-state" style="padding: 16px; font-size: 13px;">Nenhum cliente cadastrado.</li>';
+        return;
+    } else if (filtered.length === 0) {
+        list.innerHTML = '<li class="empty-state" style="padding: 16px; font-size: 13px;">Nenhum cliente encontrado.</li>';
+        return;
+    }
+
+    filtered.forEach(c => {
+        const li = document.createElement('li');
+        li.className = 'selector-item' + (c.name === selectedName ? ' selected' : '');
+        li.innerHTML = `
+            <div class="item-title">${c.name}</div>
+            <div class="item-subtitle">${c.phone}</div>
+        `;
+        li.onclick = () => {
+            document.getElementById('orderClientSelect').value = c.name;
+            document.getElementById('clientSelectorDisplay').querySelector('span').innerText = c.name;
+            document.getElementById('clientSelectorWrapper').classList.remove('active');
+            
+            // Remove 'selected' class from others and add to this
+            const allItems = list.querySelectorAll('.selector-item');
+            allItems.forEach(item => item.classList.remove('selected'));
+            li.classList.add('selected');
+        };
+        list.appendChild(li);
+    });
+
+    if (selectedName) {
+        document.getElementById('orderClientSelect').value = selectedName;
+        document.getElementById('clientSelectorDisplay').querySelector('span').innerText = selectedName;
+    } else {
+        document.getElementById('orderClientSelect').value = '';
+        document.getElementById('clientSelectorDisplay').querySelector('span').innerText = 'Selecione um cliente...';
+    }
+};
+
+window.initGenericCustomSelector = function(prefix, options, onSelect) {
+    const wrapper = document.getElementById(`${prefix}SelectorWrapper`);
+    const display = document.getElementById(`${prefix}SelectorDisplay`);
+    const list = document.getElementById(`${prefix}SelectorList`);
+    const input = document.getElementById(prefix);
+    const searchInput = document.getElementById(`${prefix}SearchInput`);
+
+    if (!wrapper || !display || !list) return;
+
+    // Popula a lista
+    window[`update${prefix.charAt(0).toUpperCase() + prefix.slice(1)}List`] = (filter = '') => {
+        list.innerHTML = '';
+        const q = filter.toLowerCase();
+        const filtered = options.filter(opt => opt.label.toLowerCase().includes(q));
+
+        filtered.forEach(opt => {
+            const li = document.createElement('li');
+            li.className = 'selector-item' + (input.value === opt.value ? ' selected' : '');
+            li.innerHTML = `<div class="item-title">${opt.label}</div>`;
+            li.onclick = (e) => {
+                e.stopPropagation();
+                input.value = opt.value;
+                display.querySelector('span').innerText = opt.label;
+                wrapper.classList.remove('active');
+                if (onSelect) onSelect(opt.value);
+            };
+            list.appendChild(li);
+        });
+    };
+
+    display.onclick = (e) => {
+        e.stopPropagation();
+        const isActive = wrapper.classList.contains('active');
+        document.querySelectorAll('.custom-selector').forEach(s => s.classList.remove('active'));
+        if (!isActive) {
+            wrapper.classList.add('active');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            window[`update${prefix.charAt(0).toUpperCase() + prefix.slice(1)}List`]();
         }
+    };
+
+    if (searchInput) {
+        searchInput.oninput = (e) => window[`update${prefix.charAt(0).toUpperCase() + prefix.slice(1)}List`](e.target.value);
+        searchInput.onclick = (e) => e.stopPropagation();
+    }
+};
+
+window.initCustomSelectors = function() {
+    // Selectors que precisam de lógica específica (clientes/peças)
+    const complexSelectors = ['client', 'part'];
+    complexSelectors.forEach(type => {
+        const wrapper = document.getElementById(`${type}SelectorWrapper`);
+        const display = document.getElementById(`${type}SelectorDisplay`);
+        const searchInput = document.getElementById(`${type}SearchInput`);
+        
+        if (!wrapper || !display) return;
+        
+        display.onclick = (e) => {
+            e.stopPropagation();
+            const isActive = wrapper.classList.contains('active');
+            document.querySelectorAll('.custom-selector').forEach(s => s.classList.remove('active'));
+            if (!isActive) {
+                wrapper.classList.add('active');
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                    if (type === 'client') window.updateClientSelectorList(document.getElementById('orderClientSelect').value);
+                    else window.updateOrderPartSelector();
+                }
+            }
+        };
+        
+        if (searchInput) {
+            searchInput.onclick = (e) => e.stopPropagation();
+            searchInput.oninput = (e) => {
+                const val = e.target.value;
+                if (type === 'client') window.updateClientSelectorList(document.getElementById('orderClientSelect').value, val);
+                else window.updateOrderPartSelector(val);
+            };
+        }
+    });
+
+    // Selectors genéricos (Status, Tipos, Tags)
+    initGenericCustomSelector('clientStatus', [
+        { value: 'Ativo', label: 'Ativo' },
+        { value: 'Inativo', label: 'Inativo' }
+    ]);
+
+    initGenericCustomSelector('deviceType', [
+        { value: 'TV', label: 'TV' },
+        { value: 'Home Theater', label: 'Home Theater' },
+        { value: 'Monitor', label: 'Monitor' },
+        { value: 'Notebook/PC', label: 'Notebook/PC' },
+        { value: 'Outros', label: 'Outros' }
+    ]);
+
+    initGenericCustomSelector('orderStatus', [
+        { value: 'Análise', label: 'Análise' },
+        { value: 'Reparo', label: 'Reparo' },
+        { value: 'Pronto', label: 'Pronto' },
+        { value: 'Entregue', label: 'Entregue' }
+    ], (val) => window.handleStatusChange(val));
+
+    initGenericCustomSelector('staffTag', [
+        { value: 'worker', label: 'Funcionário' },
+        { value: 'adm', label: 'Administrador' }
+    ]);
+    
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-selector').forEach(s => s.classList.remove('active'));
     });
 };
 
@@ -1527,10 +1820,26 @@ window.addPartToOrder = function() {
     const part = mockParts.find(p => p.id === partId);
     if (!part) return;
 
-    currentUsedParts.push({ id: part.id, name: part.name, price: part.price });
+    // Garantir que currentUsedParts seja um array
+    if (!Array.isArray(currentUsedParts)) currentUsedParts = [];
+
+    const existingPart = currentUsedParts.find(p => p.id === part.id);
+    if (existingPart) {
+        existingPart.quantity = (existingPart.quantity || 1) + 1;
+    } else {
+        currentUsedParts.push({ 
+            id: part.id, 
+            name: part.name, 
+            price: part.price, 
+            quantity: 1 
+        });
+    }
+
     window.renderOrderUsedParts();
     window.calculateOrderTotal();
     document.getElementById('orderPartSelector').value = '';
+    const partDisplay = document.getElementById('partSelectorDisplay');
+    if (partDisplay) partDisplay.querySelector('span').innerText = 'Escolha uma peça do estoque...';
 };
 
 window.removePartFromOrder = function(index) {
@@ -1539,22 +1848,76 @@ window.removePartFromOrder = function(index) {
     window.calculateOrderTotal();
 };
 
+window.removePartGroup = function(id) {
+    const existingPart = currentUsedParts.find(p => p.id === id || p.name === id);
+    if (existingPart) {
+        if ((existingPart.quantity || 1) > 1) {
+            existingPart.quantity -= 1;
+        } else {
+            currentUsedParts = currentUsedParts.filter(p => p.id !== id && p.name !== id);
+        }
+    }
+    window.renderOrderUsedParts();
+    window.calculateOrderTotal();
+};
+
 window.renderOrderUsedParts = function() {
     const list = document.getElementById('orderUsedPartsList');
     if (!list) return;
     list.innerHTML = '';
-    let total = 0;
+    
+    // Agregação robusta para exibição
+    const groups = [];
+    currentUsedParts.forEach(p => {
+        const existing = groups.find(g => g.id === p.id);
+        if (existing) {
+            existing.quantity += (p.quantity || 1);
+        } else {
+            groups.push({ ...p, quantity: (p.quantity || 1) });
+        }
+    });
 
-    currentUsedParts.forEach((p, index) => {
-        total += p.price;
+    let total = 0;
+    groups.forEach(group => {
+        const subtotal = group.price * group.quantity;
+        total += subtotal;
+
         const li = document.createElement('li');
-        li.style = "display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border-radius: 6px; font-size: 14px; border: 1px solid var(--border);";
+        li.className = 'used-part-item';
+        li.style = "display: flex; align-items: center; padding: 12px 16px; background: var(--bg-white); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; gap: 12px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
+        
         li.innerHTML = `
-            <span>${p.name} - <b>R$ ${p.price.toFixed(2)}</b></span>
-            <button onclick="removePartFromOrder(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer;">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; color: var(--text-main); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${group.name}">${group.name}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Unit: R$ ${group.price.toFixed(2)}</div>
+            </div>
+            
+            <div style="text-align: center; padding: 0 10px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-width: 60px;">
+                <div style="font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">Qtd.</div>
+                <div style="font-weight: 700; color: var(--primary); font-size: 14px;">x${group.quantity}</div>
+            </div>
+
+            <div style="text-align: right; min-width: 85px;">
+                <div style="font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">Subtotal</div>
+                <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">R$ ${subtotal.toFixed(2)}</div>
+            </div>
+
+            <button onclick="removePartGroup('${group.id || group.name}')" style="background: rgba(239, 68, 68, 0.08); border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; transition: all 0.2s;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         `;
+        
+        li.onmouseover = () => {
+            li.style.borderColor = "var(--primary)";
+            li.style.transform = "translateY(-2px)";
+            li.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
+        };
+        li.onmouseout = () => {
+            li.style.borderColor = "var(--border)";
+            li.style.transform = "translateY(0)";
+            li.style.boxShadow = "0 2px 4px rgba(0,0,0,0.02)";
+        };
+        
         list.appendChild(li);
     });
 
@@ -1758,8 +2121,9 @@ window.getOSPrintHTML = async function(id) {
 
         <!-- BARRA DE INFO -->
         <div class="print-info-bar">
-            <span>📞 (21) 98331-4697</span>
-            <span>📍 Rua Francelino Barcelos, 11 Loja C, Cafubá / Piratininga, Niterói - RJ</span>
+            <span>(21) 98331-4697</span>
+            <span>renato.rstark@gmail.com</span>
+            <span>Rua Francelino Barcelos, 11 Loja C, Cafubá / Piratininga, Niterói - RJ</span>
         </div>
 
         <!-- CLIENTE -->
@@ -1816,6 +2180,17 @@ window.getOSPrintHTML = async function(id) {
                     </div>
                 </div>
             </div>
+            
+            ${order.technicalReport ? `
+            <div class="print-section print-no-break">
+                <div class="print-section-title">Relatório Técnico / Serviço Realizado</div>
+                <div class="print-card">
+                    <div class="print-card-body">
+                        <div style="font-size: 10pt; line-height: 1.5; color: #334155; white-space: pre-wrap; padding: 5px 0;">${order.technicalReport}</div>
+                    </div>
+                </div>
+            </div>
+            ` : ''}
         </div>
 
         <!-- STATUS E DATAS -->
@@ -1956,5 +2331,47 @@ window.downloadOSPDF = async function(id) {
     });
 };
 
-// --- LÓGICA DE MODAL DE DETALHES ---
-// (Unificado para todas as plataformas)
+// --- FINALIZAÇÃO DE ORDEM ---
+window.openFinalizeModal = function() {
+    const currentId = document.getElementById('orderId').value;
+    const order = mockOrders.find(o => o.id === currentId);
+    if (!order) return;
+
+    document.getElementById('finalizeFinalValue').value = (order.finalValue || 0).toFixed(2);
+    document.getElementById('finalizeTechnicalReport').value = order.technicalReport || '';
+    document.getElementById('finalizeWarrantyDays').value = order.warrantyDays || 90;
+
+    document.getElementById('finalizeModal').classList.add('active');
+};
+
+window.closeFinalizeModal = function() {
+    document.getElementById('finalizeModal').classList.remove('active');
+};
+
+window.saveFinalizeOrder = async function() {
+    const id = document.getElementById('orderId').value;
+    const finalValue = parseFloat(document.getElementById('finalizeFinalValue').value) || 0;
+    const report = document.getElementById('finalizeTechnicalReport').value;
+    const warranty = parseInt(document.getElementById('finalizeWarrantyDays').value) || 0;
+
+    try {
+        const btn = document.querySelector('#finalizeModal .primary');
+        btn.innerText = "Finalizando...";
+        btn.disabled = true;
+
+        await db.collection('orders').doc(id).update({
+            status: 'Entregue',
+            exitDate: firebase.firestore.FieldValue.serverTimestamp(),
+            finalValue,
+            technicalReport: report,
+            warrantyDays: warranty
+        });
+
+        closeFinalizeModal();
+        closeOrderModal();
+        showMessage("Ordem finalizada e entregue com sucesso!", "Sucesso");
+    } catch (e) {
+        console.error(e);
+        showMessage("Erro ao finalizar a ordem.", "Erro");
+    }
+};

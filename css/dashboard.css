@@ -1110,7 +1110,7 @@ body.dark-mode {
     --border: #334155;
 }
 
-/* Status Badges Específicos para Estoque */
+/* Status Badges EspecÃ­ficos para Estoque */
 .status-badge.out-of-stock {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
@@ -1124,7 +1124,7 @@ body.dark-mode {
     gap: 4px;
 }
 
-/* Ajustes para a lista de peças no modal de OS */
+/* Ajustes para a lista de peÃ§as no modal de OS */
 #orderUsedPartsList li {
     transition: all 0.2s ease;
 }
@@ -1155,7 +1155,7 @@ body.dark-mode {
     background: #334155 !important;
 }
 
-/* Ajustes de formulários compactos para endereço */
+/* Ajustes de formulÃ¡rios compactos para endereÃ§o */
 #newClientSection .form-group label,
 #clientModal .modal-body label {
     font-size: 13px;
@@ -1311,7 +1311,7 @@ body.dark-mode {
         justify-content: center;
     }
 
-    /* Orders Header Reordering (Só para mobile < 1024px) */
+    /* Orders Header Reordering (SÃ³ para mobile < 1024px) */
     .orders-header {
         display: flex;
         flex-direction: column-reverse;
@@ -1349,7 +1349,7 @@ body.dark-mode {
         white-space: nowrap;
     }
 
-    /* Otimizações de Tabela para Mobile */
+    /* OtimizaÃ§Ãµes de Tabela para Mobile */
     .data-table thead th.desktop-date-column,
     .data-table tbody td.desktop-date-column {
         display: none;
@@ -1370,6 +1370,154 @@ body.dark-mode {
         padding: 12px 10px;
         font-size: 13px;
     }
+}
+
+/* Custom Selectors */
+.custom-selector {
+    position: relative;
+    width: 100%;
+    user-select: none;
+}
+
+.selector-display {
+    padding: 10px 16px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    min-height: 42px;
+}
+
+.selector-display:hover {
+    border-color: var(--primary);
+}
+
+.custom-selector.active .selector-display {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.selector-display svg {
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+
+.custom-selector.active .selector-display svg {
+    transform: rotate(180deg);
+}
+
+.selector-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: selectorSlideDown 0.2s ease;
+}
+
+@keyframes selectorSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.custom-selector.active .selector-dropdown {
+    display: flex;
+}
+
+.selector-search {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-light);
+}
+
+.selector-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background: var(--bg-white);
+    color: var(--text-main);
+}
+
+.selector-search input:focus {
+    border-color: var(--primary);
+}
+
+.selector-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.selector-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+}
+
+.selector-item:last-child {
+    border-bottom: none;
+}
+
+.selector-item:hover {
+    background: var(--bg-light);
+}
+
+.selector-item.selected {
+    background: rgba(37, 99, 235, 0.05);
+    border-left: 3px solid var(--primary);
+}
+
+.selector-item .item-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.selector-item .item-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.selector-item .item-badge {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+/* Dark mode overrides for custom selector dropdown */
+.dark-mode .selector-dropdown {
+    background: var(--bg-white);
+    border-color: var(--border);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .selector-search {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .selector-item:hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Offline Indicator */
@@ -1408,7 +1556,7 @@ body.is-offline .offline-indicator {
     }
 }
 
-/* Restringir botões de exclusão e impressão no modal apenas para mobile */
+/* Restringir botÃµes de exclusÃ£o e impressÃ£o no modal apenas para mobile */
 @media (min-width: 769px) {
     #btnDeleteOrder, 
     #btnDeleteClient, 
@@ -1424,4 +1572,158 @@ body.is-offline .offline-indicator {
     .data-table .icon-btn.print {
         display: none !important;
     }
+}
+/* RELATÓRIO TÉCNICO & GARANTIA */
+.technical-report-container {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 12px;
+    border: 1px dashed var(--border);
+}
+
+.technical-report-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    background: var(--bg-white);
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.technical-report-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.warranty-status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.warranty-valid {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.warranty-expired {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.dark-mode .warranty-expired {
+    background: rgba(255, 255, 255, 0.05);
+    color: #64748b;
+}
+
+/* SISTEMA DE NOTIFICAÇÕES (TOAST) */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    max-width: 350px;
+}
+
+.toast-notification {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: auto;
+    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.toast-notification.fadeOut {
+    animation: toastSlideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastSlideOut {
+    to {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+}
+
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.toast-message {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+/* Tipos de Toast */
+.toast-success .toast-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+.toast-info .toast-icon {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+.toast-warning .toast-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+/* Dark Mode Toast */
+.dark-mode .toast-notification {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(51, 65, 85, 0.8);
+}
+.dark-mode .toast-title {
+    color: #f8fafc;
+}
+.dark-mode .toast-message {
+    color: #94a3b8;
 }

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte & Privacidade - Rstark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #475569;
+            --primary: #2563eb;
+            --border-color: #e2e8f0;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .header {
+            background-color: var(--surface-color);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-back:hover {
+            color: var(--text-main);
+            background: #f1f5f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h2 {
+            font-size: 28px;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 16px;
+        }
+
+        .section-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .section-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        .section-card ul {
+            color: var(--text-muted);
+            font-size: 15px;
+            padding-left: 20px;
+        }
+
+        .section-card li {
+            margin-bottom: 8px;
+        }
+
+        .contact-box {
+            background: #f0f9ff;
+            border-left: 4px solid var(--primary);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+
+        .contact-box strong {
+            color: #0369a1;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .tech-logos {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tech-logos img {
+            height: 28px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .tech-logos img:hover {
+            opacity: 1;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 15px 20px;
+            }
+            .section-card {
+                padding: 24px;
+            }
+            .tech-logos {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>
+            Rstark Gestão
+        </h1>
+        <a href="javascript:history.back()" class="btn-back">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Voltar
+        </a>
+    </header>
+
+    <div class="container">
+        
+        <div class="page-title">
+            <h2>Políticas e Suporte Institucional</h2>
+            <p>Diretrizes legais, privacidade e atendimento técnico para o sistema Rstark.</p>
+        </div>
+
+        <!-- Privacidade e Segurança -->
+        <div class="section-card" id="privacidade">
+            <h3>Privacidade e Segurança de Dados</h3>
+            <p>A Rstark tem um compromisso absoluto com a segurança e a privacidade das informações. Este sistema utiliza infraestrutura robusta para garantir que os dados de seus clientes, serviços e fluxo financeiro estejam permanentemente protegidos contra acessos não autorizados.</p>
+            
+            <p><strong>Nossa infraestrutura e proteção:</strong></p>
+            <ul>
+                <li><strong>Criptografia Google Firebase:</strong> Todo o tráfego de dados do sistema funciona sob camada de segurança HTTPS/SSL ponta-a-ponta, sendo processados e mantidos seguros nos servidores corporativos da Google.</li>
+                <li><strong>Acesso Autenticado:</strong> A interface de operações é selada. Nenhum dado é baixado no navegador de um dispositivo que não possua um login autenticado formal no servidor.</li>
+                <li><strong>Cookies e Dados Locais:</strong> Usamos o cache do navegador exclusivamente para manter a sua sessão fluída (permitindo reinícios sem necessidade de logar toda vez) e para garantir que o sistema não encerre uma operação caso a rede falhe brevemente.</li>
+            </ul>
+
+            <div class="tech-logos">
+                <div class="tech-item">
+                    Powered by
+                </div>
+                <div class="tech-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Firebase_Logo.svg" alt="Firebase Logo">
+                    Firebase
+                </div>
+                <div class="tech-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google Logo">
+                </div>
+            </div>
+        </div>
+
+        <!-- Termos de Serviço -->
+        <div class="section-card" id="termos">
+            <h3>Termos de Operação</h3>
+            <p>As diretrizes a seguir regulamentam a conduta que deve ser mantida ao acessar as ferramentas do painel:</p>
+            <ul>
+                <li><strong>Uso Exclusivo:</strong> As credenciais fornecidas são instransferíveis. Você é responsável por manter sua tela de trabalho bloqueada ao se afastar.</li>
+                <li><strong>Segurança:</strong> O sistema mantém protocolos anti-manipulação ativados. Qualquer interceptação do console ou adulteração forçada dos scripts encerra a página, emitindo o bloqueio "Vanguard" automático via rede.</li>
+                <li><strong>Manutenção de Registros:</strong> O administrador institucional autoriza o banco de dados a auto-ordenar os registros mais recentes. Registros vitais gerados na emissão de laudos técnicos possuem respaldo temporal irrevogável.</li>
+            </ul>
+        </div>
+
+        <!-- Dúvidas Frequentes -->
+        <div class="section-card" id="faq">
+            <h3>Dúvidas Frequentes (FAQ)</h3>
+            
+            <p><strong>Como o sistema funciona sem internet?</strong></p>
+            <p>O sistema possui um modo offline integrado. Se a sua conexão cair, você poderá continuar acessando as Ordens de Serviço recentes e Clientes cacheados. Assim que a rede for restabelecida, a bolinha no canto inferior direito voltará a ficar "Online" e os dados serão sincronizados automaticamente.</p>
+            
+            <p><strong>Como faço para emitir a Ordem de Serviço para o cliente?</strong></p>
+            <p>Após criar e salvar uma OS, clique no botão "Ações" e depois no ícone roxo com a impressora. Isso abrirá a via de impressão devidamente formatada e estilizada, pronta para salvar em PDF ou imprimir na impressora da loja.</p>
+
+            <p><strong>O que acontece se o prazo de garantia acabar?</strong></p>
+            <p>O sistema calcula os dias úteis configurados na hora da entrega da OS. Caso o prazo se exceda, o status no setor Financeiro vai alterar a cor automaticamente de verde ("Válida") para cinza ("Expirada"), informando que não há mais cobertura para o serviço.</p>
+
+            <p style="color: #c2410c;"><strong>O site travou ou parou de carregar dados novos, o que fazer?</strong></p>
+            <p>Isso geralmente ocorre quando o sistema está recebendo uma **atualização crítica**. Siga estes passos na ordem:</p>
+            <ol>
+                <li>Atualize a página (F5) pelo menos umas 5 vezes seguidas.</li>
+                <li>Aguarde de 5 a 10 minutos para o servidor estabilizar a nova versão.</li>
+                <li>Reinicie o seu navegador ou o dispositivo (celular/tablet).</li>
+                <li>Como último recurso, utilize o botão "Limpar Cache Local" nos Ajustes. <strong>Aviso importante:</strong> Ao limpar o cache, qualquer dado que ainda não tenha sido sincronizado com a nuvem (operando totalmente offline) poderá ser perdido permanentemente.</li>
+            </ol>
+        </div>
+
+        <!-- Contato / Suporte -->
+        <div class="section-card" id="suporte">
+            <h3>Suporte Técnico</h3>
+            <p>Em caso de falhas críticas de infraestrutura, erro no carregamento da tela de OS ou incidentes graves, reporte o problema à manutenção do código.</p>
+            
+            <div class="contact-box">
+                <strong>Atendimento à Administração</strong>
+                E-mail: (Em breve) <br>
+                WhatsApp: (Em breve)
+            </div>
+            <p style="margin-top: 12px; font-size: 13px;">Para dúvidas de usabilidade ou atualizações cadastrais do seu usuário, contate o administrador central da sua loja.</p>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        &copy; 2026 Rstark Assistência Técnica. Todos os direitos reservados.
+    </footer>
+
+</body>
+</html>
