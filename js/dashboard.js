@@ -197,10 +197,44 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Limpa bypass se estamos online e com usuário real
             localStorage.removeItem('rstark_current_offline_session');
-            checkPermissions(user);
             setupFirebaseListeners();
         }
     });
+
+    // --- CONTROLE DE MODAIS EM SEÇÕES ---
+    window.switchModalSection = function(modalId, sectionId, sectionTitle) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const menu = modal.querySelector('.modal-nav-menu');
+        const pages = modal.querySelectorAll('.modal-page');
+        const backBtn = modal.querySelector('.modal-back-btn');
+        const titleEl = modal.querySelector('.modal-header h2');
+        
+        if (!modal.hasAttribute('data-original-title')) {
+            modal.setAttribute('data-original-title', titleEl ? titleEl.innerText : '');
+        }
+        const originalTitle = modal.getAttribute('data-original-title');
+
+        if (!sectionId) {
+            if (menu) menu.style.display = 'grid';
+            pages.forEach(p => p.classList.remove('active'));
+            if (backBtn) backBtn.classList.remove('active');
+            if (titleEl) titleEl.innerText = originalTitle;
+        } else {
+            if (menu) menu.style.display = 'none';
+            pages.forEach(p => {
+                if (p.id === sectionId) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+            if (backBtn) backBtn.classList.add('active');
+            if (sectionTitle && titleEl) titleEl.innerText = sectionTitle;
+        }
+    };
+
+    window.resetModalSections = function(modalId) {
+        window.switchModalSection(modalId, null);
+    };
 
     applyMasks();
 
@@ -436,7 +470,6 @@ window.renderOrdersTable = function(filter = 'Todos') {
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
         tr.onclick = (e) => {
-            if (window.innerWidth <= 1024) return; // Bloqueia clique na linha no mobile
             if (!e.target.closest('.table-actions')) editOrder(order.id);
         };
 
@@ -457,29 +490,18 @@ window.renderOrdersTable = function(filter = 'Todos') {
                 ${exitDateStr ? `<div style="font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px;">S: ${exitDateStr}</div>` : ''}
             </td>
             <td>
-                <!-- Ações Desktop -->
-                <div class="table-actions desktop-actions">
+                <div class="table-actions">
                     <button class="icon-btn edit" onclick="event.stopPropagation(); editOrder('${order.id}')" title="Editar Status/Detalhes">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     <button class="icon-btn print" onclick="event.stopPropagation(); printOS('${order.id}')" title="Imprimir Comprovante">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     </button>
-                    <button class="icon-btn pdf" onclick="event.stopPropagation(); downloadOSPDF('${order.id}')" title="Baixar PDF">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    </button>
                     ${currentUserTag === 'adm' ? `
                     <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOrder('${order.id}')" title="Excluir OS">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     ` : ''}
-                </div>
-
-                <!-- Ações Mobile (Oculto no Desktop via CSS) -->
-                <div class="mobile-actions" style="display:none;">
-                    <button class="details-btn" onclick="event.stopPropagation(); openMobileDetails('${order.id}')" title="Gerenciar OS">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11l4 4m-4 0l4-4"></path></svg>
-                    </button>
                 </div>
             </td>
         `;
@@ -514,10 +536,7 @@ window.renderClientsTable = function() {
 
         tr.innerHTML = `
             <td style="font-weight: 500; color: var(--text-main);">${client.name}</td>
-            <td>
-                <div>${client.phone}</div>
-                <div style="font-size: 13px; color: var(--text-muted);">${client.email || 'Sem e-mail'}</div>
-            </td>
+            <td>${client.phone}</td>
             <td><span class="status-badge ${badgeClass}">${client.status || 'Ativo'}</span></td>
             <td>
                 <div class="table-actions">
@@ -630,7 +649,6 @@ window.openOrderModal = function() {
 
     document.getElementById('newClientName').value = '';
     document.getElementById('newClientPhone').value = '';
-    document.getElementById('newClientEmail').value = '';
     document.getElementById('newClientCEP').value = '';
     document.getElementById('newClientAddress').value = '';
     document.getElementById('newClientNumber').value = '';
@@ -671,7 +689,6 @@ window.saveOrder = async function() {
     if (isCreatingNewClientInsideOrder) {
         const name = document.getElementById('newClientName').value;
         const phone = document.getElementById('newClientPhone').value;
-        const email = document.getElementById('newClientEmail').value;
 
         if (!name || !phone) {
             showMessage('Nome e telefone do cliente são obrigatórios!', 'Atenção');
@@ -688,7 +705,7 @@ window.saveOrder = async function() {
 
         try {
             await db.collection('clients').add({
-                name, email, phone, 
+                name, phone, 
                 cep, address, number, complement,
                 status: 'Ativo', 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -744,7 +761,7 @@ window.saveOrder = async function() {
 
         if (orderId) {
             const oldOrder = mockOrders.find(o => o.id === orderId);
-            let exitDate = oldOrder.exitDate || null;
+            let exitDate = (oldOrder && oldOrder.exitDate) ? oldOrder.exitDate : null;
 
             // Se mudou para Entregue agora e não tinha data de saída
             if (statusVal === 'Entregue' && (!exitDate)) {
@@ -765,7 +782,7 @@ window.saveOrder = async function() {
             });
 
             // Lógica de baixa de estoque se mudou para entregue
-            if (statusVal === 'Entregue' && oldOrder.status !== 'Entregue') {
+            if (statusVal === 'Entregue' && (!oldOrder || oldOrder.status !== 'Entregue')) {
                 for (let up of currentUsedParts) {
                     const partDoc = await db.collection('parts').doc(up.id).get();
                     if (partDoc.exists) {
@@ -883,7 +900,6 @@ window.deleteOrder = async function(id) {
 window.openClientModal = function() {
     document.getElementById('clientId').value = '';
     document.getElementById('clientName').value = '';
-    document.getElementById('clientEmail').value = '';
     document.getElementById('clientPhone').value = '';
     document.getElementById('clientPhoneResidential').value = '';
     
@@ -909,7 +925,6 @@ window.closeClientModal = function() {
 window.saveClient = async function() {
     const id = document.getElementById('clientId').value;
     const name = document.getElementById('clientName').value;
-    const email = document.getElementById('clientEmail').value;
     const phone = document.getElementById('clientPhone').value;
     const phoneResidential = document.getElementById('clientPhoneResidential').value;
     const cep = document.getElementById('clientCEP').value;
@@ -932,13 +947,13 @@ window.saveClient = async function() {
         if (id) {
             // Edit
             await db.collection('clients').doc(id).update({
-                name, email, phone, status,
+                name, phone, status,
                 phoneResidential, cep, address, number, complement
             });
         } else {
             // Create
             await db.collection('clients').add({
-                name, email, phone, status, 
+                name, phone, status, 
                 phoneResidential, cep, address, number, complement,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -956,15 +971,11 @@ window.saveClient = async function() {
 };
 
 window.editClient = function(id) {
-    if (window.innerWidth <= 1024) {
-        return window.openMobileClient(id);
-    }
     const client = mockClients.find(c => c.id === id);
     if (!client) return;
     
     document.getElementById('clientId').value = client.id;
     document.getElementById('clientName').value = client.name || '';
-    document.getElementById('clientEmail').value = client.email || '';
     document.getElementById('clientPhone').value = maskPhone(client.phone || '');
     document.getElementById('clientPhoneResidential').value = maskPhone(client.phoneResidential || '');
     
@@ -1150,9 +1161,7 @@ function renderFinancialTable() {
                     <button class="icon-btn print" onclick="printOS('${order.id}')" title="Imprimir" style="padding: 4px;">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     </button>
-                    <button class="icon-btn pdf" onclick="downloadOSPDF('${order.id}')" title="Baixar PDF" style="padding: 4px;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    </button>
+                </div>
                 </div>
             </td>
         `;
@@ -1243,20 +1252,33 @@ window.renderStaffTable = function() {
             tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">Nenhum funcionário encontrado no banco de dados.</td></tr>`;
             return;
         }
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const id = docSnap.id;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight: 500;">${data.name}</td>
-                <td>${data.email}</td>
-                <td><span class="status-badge ${data.tag === 'adm' ? 'completed' : 'progress'}">${data.tag.toUpperCase()}</span></td>
-                <td>
-                    <button class="icon-btn delete" onclick="deleteStaff('${id}', '${data.email}')" title="Remover Acesso">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                </td>
-            `;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                
+                let displayEmail = data.email;
+                if (window.innerWidth <= 768 && displayEmail.length > 20) {
+                    const parts = displayEmail.split('@');
+                    if (parts.length === 2) {
+                        const namePart = parts[0];
+                        const domainPart = parts[1];
+                        if (namePart.length > 10) {
+                            displayEmail = namePart.substring(0, 5) + '...' + namePart.slice(-2) + '@' + domainPart;
+                        }
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${data.name}</td>
+                    <td title="${data.email}">${displayEmail}</td>
+                    <td><span class="status-badge ${data.tag === 'adm' ? 'completed' : 'progress'}">${data.tag.toUpperCase()}</span></td>
+                    <td>
+                        <button class="icon-btn delete" onclick="deleteStaff('${id}', '${data.email}')" title="Remover Acesso">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </td>
+                `;
             tableBody.appendChild(tr);
         });
     });
@@ -1393,9 +1415,6 @@ window.savePart = async function() {
 };
 
 window.editPart = function(id) {
-    if (window.innerWidth <= 1024) {
-        return window.openMobilePart(id);
-    }
     const part = mockParts.find(p => p.id === id);
     if (!part) return;
     document.getElementById('partId').value = part.id;
@@ -1568,7 +1587,6 @@ window.getOSPrintHTML = async function(id) {
     // Busca dados completos do cliente
     const clientData = mockClients.find(c => c.name === order.client) || {};
     const clientPhone = clientData.phone ? maskPhone(clientData.phone) : '—';
-    const clientEmail = clientData.email || '—';
     const clientAddress = [
         clientData.address,
         clientData.number ? `Nº ${clientData.number}` : '',
@@ -1664,7 +1682,6 @@ window.getOSPrintHTML = async function(id) {
         <!-- BARRA DE INFO -->
         <div class="print-info-bar">
             <span>📞 (21) 98331-4697</span>
-            <span>✉️ renato.rstark@gmail.com</span>
             <span>📍 Rua Francelino Barcelos, 11 Loja C, Cafubá / Piratininga, Niterói - RJ</span>
         </div>
 
@@ -1681,10 +1698,6 @@ window.getOSPrintHTML = async function(id) {
                         <div class="print-field">
                             <div class="print-field-label">Telefone / WhatsApp</div>
                             <div class="print-field-value">${clientPhone}</div>
-                        </div>
-                        <div class="print-field">
-                            <div class="print-field-label">E-mail</div>
-                            <div class="print-field-value">${clientEmail}</div>
                         </div>
                         <div class="print-field">
                             <div class="print-field-label">CEP</div>
@@ -1866,357 +1879,5 @@ window.downloadOSPDF = async function(id) {
     });
 };
 
-// --- LÓGICA DO NOVO MODAL DE DETALHES MOBILE ---
-let currentMobileOrderId = null;
-
-window.openMobileDetails = function(id) {
-    const order = mockOrders.find(o => o.id === id);
-    if (!order) return;
-
-    currentMobileOrderId = id;
-    document.getElementById('mobileOrderId').value = id;
-    document.getElementById('mobileClientName').innerText = order.client;
-    document.getElementById('mobileOSNumber').innerText = order.displayId || 'OS-Cloud';
-    
-    document.getElementById('mobileDeviceType').value = order.deviceType || '';
-    document.getElementById('mobileDeviceModel').value = order.deviceModel || '';
-    document.getElementById('mobileDeviceSerial').value = order.deviceSerial || '';
-    document.getElementById('mobileIssue').value = order.issue || '';
-    document.getElementById('mobileEstimatedDate').value = order.estimatedDate || '';
-    document.getElementById('mobileLaborPrice').value = order.laborPrice || 0;
-    document.getElementById('mobileStatus').value = order.status;
-
-    // Atualiza badge de status
-    window.handleMobileStatusChange();
-
-    // Reinicia para o Menu Principal
-    window.showMobileMenu();
-
-    // Carrega peças
-    currentUsedParts = JSON.parse(JSON.stringify(order.usedParts || []));
-    window.renderMobilePartsList();
-    window.updateMobilePartSelector();
-    window.calculateMobileTotal();
-
-    document.getElementById('mobileDetailsModal').classList.add('active');
-};
-
-window.closeMobileDetails = function() {
-    document.getElementById('mobileDetailsModal').classList.remove('active');
-    currentMobileOrderId = null;
-};
-
-window.updateMobilePartSelector = function() {
-    const selector = document.getElementById('mobilePartSelector');
-    if (!selector) return;
-    selector.innerHTML = '<option value="">Peça...</option>';
-    mockParts.forEach(p => {
-        if (p.stock > 0) {
-            selector.innerHTML += `<option value="${p.id}">${p.name} - R$ ${p.price.toFixed(2)}</option>`;
-        }
-    });
-};
-
-window.addPartToMobileOrder = function() {
-    const selector = document.getElementById('mobilePartSelector');
-    const partId = selector.value;
-    if (!partId) return;
-    const part = mockParts.find(p => p.id === partId);
-    if (part) {
-        currentUsedParts.push({ id: part.id, name: part.name, price: part.price });
-        window.renderMobilePartsList();
-        window.calculateMobileTotal();
-        selector.value = '';
-    }
-};
-
-window.removePartFromMobileOrder = function(index) {
-    currentUsedParts.splice(index, 1);
-    window.renderMobilePartsList();
-    window.calculateMobileTotal();
-};
-
-window.renderMobilePartsList = function() {
-    const list = document.getElementById('mobilePartsList');
-    if (!list) return;
-    list.innerHTML = '';
-    
-    currentUsedParts.forEach((p, index) => {
-        const li = document.createElement('li');
-        li.style = "display: flex; justify-content: space-between; padding: 6px 10px; background: var(--bg-light); border-radius: 6px; font-size: 13px;";
-        li.innerHTML = `
-            <span>${p.name} (R$ ${p.price.toFixed(2)})</span>
-            <span onclick="removePartFromMobileOrder(${index})" style="color: #ef4444; font-weight: bold; padding: 0 4px;">&times;</span>
-        `;
-        list.appendChild(li);
-    });
-};
-
-window.calculateMobileTotal = function() {
-    const labor = parseFloat(document.getElementById('mobileLaborPrice').value) || 0;
-    const parts = currentUsedParts.reduce((sum, p) => sum + (p.price || 0), 0);
-    const total = labor + parts;
-    document.getElementById('mobileTotalDisplay').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-};
-
-window.saveMobileDetails = async function() {
-    if (!currentMobileOrderId) return;
-    const btn = document.getElementById('btnSaveMobile');
-    const originalText = btn.innerText;
-    btn.innerText = "Salvando...";
-    btn.disabled = true;
-
-    const data = {
-        deviceType: document.getElementById('mobileDeviceType').value,
-        deviceModel: document.getElementById('mobileDeviceModel').value,
-        deviceSerial: document.getElementById('mobileDeviceSerial').value,
-        issue: document.getElementById('mobileIssue').value,
-        estimatedDate: document.getElementById('mobileEstimatedDate').value,
-        laborPrice: parseFloat(document.getElementById('mobileLaborPrice').value) || 0,
-        status: document.getElementById('mobileStatus').value,
-        usedParts: currentUsedParts,
-        partsTotal: currentUsedParts.reduce((sum, p) => sum + p.price, 0),
-        finalValue: (parseFloat(document.getElementById('mobileLaborPrice').value) || 0) + currentUsedParts.reduce((sum, p) => sum + p.price, 0)
-    };
-
-    // Atualiza título da OS para manter padrão
-    data.title = `${data.deviceType} ${data.deviceModel} (SN: ${data.deviceSerial}) ${data.issue ? `- ${data.issue}` : ''}`;
-
-    // Log de saída se virou entregue
-    const order = mockOrders.find(o => o.id === currentMobileOrderId);
-    if (data.status === 'Entregue' && (!order.exitDate)) {
-        data.exitDate = firebase.firestore.FieldValue.serverTimestamp();
-    }
-
-    try {
-        await db.collection('orders').doc(currentMobileOrderId).update(data);
-        window.closeMobileDetails();
-        showMessage("Alterações salvas com sucesso!", "Sucesso");
-    } catch (e) {
-        console.error(e);
-        showMessage("Erro ao salvar no servidor.", "Erro");
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-};
-
-window.deleteMobileOrder = function() {
-    if (!currentMobileOrderId) return;
-    window.closeMobileDetails();
-    // Reutiliza a função de deletar padrão que já tem confirmação
-    window.deleteOrder(currentMobileOrderId);
-};
-
-window.printMobileOrder = function() {
-    if (!currentMobileOrderId) return;
-    window.printOS(currentMobileOrderId);
-};
-
-window.pdfMobileOrder = function() {
-    if (!currentMobileOrderId) return;
-    window.downloadOSPDF(currentMobileOrderId);
-};
-
-window.handleMobileStatusChange = function() {
-    const status = document.getElementById('mobileStatus').value;
-    const badge = document.getElementById('mobileStatusBadge');
-    if (badge) {
-        badge.innerText = status;
-        badge.className = `status-badge ${window.getBadgeClass(status)}`;
-    }
-};
-
-window.showMobileSection = function(sectionId) {
-    const sections = ['device', 'parts', 'finance'];
-    sections.forEach(s => {
-        const el = document.getElementById(`section${s.charAt(0).toUpperCase() + s.slice(1)}`);
-        if (el) el.style.display = 'none';
-    });
-    
-    document.getElementById('mobileDetailsMenu').style.display = 'none';
-    const targetSection = document.getElementById(`section${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`);
-    if (targetSection) targetSection.style.display = 'block';
-    
-    document.getElementById('btnMobileBack').style.display = 'flex';
-    document.getElementById('btnMobileClose').style.display = 'none';
-};
-
-window.showMobileMenu = function() {
-    const sections = ['device', 'parts', 'finance'];
-    sections.forEach(s => {
-        const el = document.getElementById(`section${s.charAt(0).toUpperCase() + s.slice(1)}`);
-        if (el) el.style.display = 'none';
-    });
-    
-    document.getElementById('mobileDetailsMenu').style.display = 'block';
-    document.getElementById('btnMobileBack').style.display = 'none';
-    document.getElementById('btnMobileClose').style.display = 'block';
-};
-
-// --- LOGICA MODAL CLIENTE MOBILE ---
-window.openMobileClient = function(id) {
-    const client = id ? mockClients.find(c => c.id === id) : null;
-    
-    document.getElementById('mobileClientId').value = id || '';
-    document.getElementById('mobileClientNameInput').value = client ? client.name : '';
-    document.getElementById('mobileClientEmailInput').value = client ? (client.email || '') : '';
-    document.getElementById('mobileClientPhone').value = client ? (client.phone || '') : '';
-    document.getElementById('mobileClientPhoneResidential').value = client ? (client.phoneResidential || '') : '';
-    document.getElementById('mobileClientCEP').value = client ? (client.cep || '') : '';
-    document.getElementById('mobileClientAddress').value = client ? (client.address || '') : '';
-    document.getElementById('mobileClientNumber').value = client ? (client.number || '') : '';
-    document.getElementById('mobileClientComplement').value = client ? (client.complement || '') : '';
-    document.getElementById('mobileClientNeighborhood').value = client ? (client.neighborhood || '') : '';
-
-    document.getElementById('mobileClientHeaderName').innerText = client ? client.name : 'Novo Cliente';
-    document.getElementById('mobileClientStatusBadge').innerText = client ? (client.status || 'Ativo') : 'Ativo';
-
-    window.showMobileClientMenu();
-    document.getElementById('mobileClientModal').classList.add('active');
-};
-
-window.closeMobileClient = function() {
-    document.getElementById('mobileClientModal').classList.remove('active');
-};
-
-window.showMobileClientSection = function(sectionId) {
-    const sections = ['Basic', 'Address', 'Contact'];
-    sections.forEach(s => {
-        document.getElementById(`sectionClient${s}`).style.display = 'none';
-    });
-    document.getElementById('mobileClientMenu').style.display = 'none';
-    document.getElementById(`sectionClient${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`).style.display = 'block';
-    document.getElementById('btnClientBack').style.display = 'flex';
-    document.getElementById('btnClientClose').style.display = 'none';
-};
-
-window.showMobileClientMenu = function() {
-    const sections = ['Basic', 'Address', 'Contact'];
-    sections.forEach(s => {
-        document.getElementById(`sectionClient${s}`).style.display = 'none';
-    });
-    document.getElementById('mobileClientMenu').style.display = 'block';
-    document.getElementById('btnClientBack').style.display = 'none';
-    document.getElementById('btnClientClose').style.display = 'block';
-};
-
-window.saveMobileClient = async function() {
-    const id = document.getElementById('mobileClientId').value;
-    const name = document.getElementById('mobileClientNameInput').value;
-    if (!name) return showMessage("Nome é obrigatório", "Atenção");
-
-    const data = {
-        name,
-        email: document.getElementById('mobileClientEmailInput').value,
-        phone: document.getElementById('mobileClientPhone').value,
-        phoneResidential: document.getElementById('mobileClientPhoneResidential').value,
-        cep: document.getElementById('mobileClientCEP').value,
-        address: document.getElementById('mobileClientAddress').value,
-        number: document.getElementById('mobileClientNumber').value,
-        complement: document.getElementById('mobileClientComplement').value,
-        neighborhood: document.getElementById('mobileClientNeighborhood').value,
-        status: document.getElementById('mobileClientStatusBadge').innerText
-    };
-
-    const btn = document.getElementById('btnSaveMobileClient');
-    btn.disabled = true;
-    btn.innerText = 'Salvando...';
-
-    try {
-        if (id) {
-            await db.collection('clients').doc(id).update(data);
-        } else {
-            await db.collection('clients').add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        }
-        window.closeMobileClient();
-        showMessage("Cliente salvo!", "Sucesso");
-    } catch(e) { console.error(e); }
-    btn.disabled = false;
-    btn.innerText = 'Salvar Cliente';
-};
-
-window.deleteMobileClient = function() {
-    const id = document.getElementById('mobileClientId').value;
-    if (!id) return;
-    window.closeMobileClient();
-    window.deleteClient(id);
-};
-
-// --- LOGICA MODAL PEÇA MOBILE ---
-window.openMobilePart = function(id) {
-    const part = id ? mockParts.find(p => p.id === id) : null;
-    
-    document.getElementById('mobilePartIdInput').value = id || '';
-    document.getElementById('mobilePartNameInput').value = part ? part.name : '';
-    document.getElementById('mobilePartModelInput').value = part ? part.model : '';
-    document.getElementById('mobilePartPriceInput').value = part ? part.price : '';
-    document.getElementById('mobilePartStockInput').value = part ? part.stock : '';
-
-    document.getElementById('mobilePartHeaderName').innerText = part ? part.name : 'Nova Peça';
-    document.getElementById('mobilePartHeaderModel').innerText = part ? part.model : 'Novo Modelo';
-
-    window.showMobilePartMenu();
-    document.getElementById('mobilePartModal').classList.add('active');
-};
-
-window.closeMobilePart = function() {
-    document.getElementById('mobilePartModal').classList.remove('active');
-};
-
-window.showMobilePartSection = function(sectionId) {
-    const sections = ['Info', 'Stock'];
-    sections.forEach(s => {
-        document.getElementById(`sectionPart${s}`).style.display = 'none';
-    });
-    document.getElementById('mobilePartMenu').style.display = 'none';
-    document.getElementById(`sectionPart${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`).style.display = 'block';
-    document.getElementById('btnPartBack').style.display = 'flex';
-    document.getElementById('btnPartClose').style.display = 'none';
-};
-
-window.showMobilePartMenu = function() {
-    const sections = ['Info', 'Stock'];
-    sections.forEach(s => {
-        document.getElementById(`sectionPart${s}`).style.display = 'none';
-    });
-    document.getElementById('mobilePartMenu').style.display = 'block';
-    document.getElementById('btnPartBack').style.display = 'none';
-    document.getElementById('btnPartClose').style.display = 'block';
-};
-
-window.saveMobilePart = async function() {
-    const id = document.getElementById('mobilePartIdInput').value;
-    const name = document.getElementById('mobilePartNameInput').value;
-    if (!name) return showMessage("Nome é obrigatório", "Atenção");
-
-    const data = {
-        name,
-        model: document.getElementById('mobilePartModelInput').value,
-        price: parseFloat(document.getElementById('mobilePartPriceInput').value) || 0,
-        stock: parseInt(document.getElementById('mobilePartStockInput').value) || 0
-    };
-
-    const btn = document.getElementById('btnSaveMobilePart');
-    btn.disabled = true;
-    btn.innerText = 'Salvando...';
-
-    try {
-        if (id) {
-            await db.collection('parts').doc(id).update(data);
-        } else {
-            await db.collection('parts').add({ ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        }
-        window.closeMobilePart();
-        showMessage("Estoque atualizado!", "Sucesso");
-    } catch(e) { console.error(e); }
-    btn.disabled = false;
-    btn.innerText = 'Salvar Peça';
-};
-
-window.deleteMobilePart = function() {
-    const id = document.getElementById('mobilePartIdInput').value;
-    if (!id) return;
-    window.closeMobilePart();
-    window.deletePart(id);
-};
+// --- LÓGICA DE MODAL DE DETALHES ---
+// (Unificado para todas as plataformas)

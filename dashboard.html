@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -230,7 +231,7 @@
                 <div class="orders-header" style="margin-bottom: 16px;">
                     <div class="search-box" style="width: 100%; max-width: 400px;">
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" placeholder="Buscar por nome, e-mail ou telefone..." onkeyup="filterClients(this.value)">
+                        <input type="text" placeholder="Buscar por nome ou telefone..." onkeyup="filterClients(this.value)">
                     </div>
                 </div>
 
@@ -389,8 +390,8 @@
                             <input type="text" class="input-control" value="Rstark Assistência Técnica">
                         </div>
                         <div class="form-group">
-                            <label>E-mail de Contato</label>
-                            <input type="email" class="input-control" value="contato@rstark.com">
+                            <label>WhatsApp de Contato</label>
+                            <input type="text" class="input-control" value="(21) 98331-4697">
                         </div>
                         <button class="action-btn primary" style="width: 100%; justify-content: center;">Salvar Perfil</button>
                     </div>
@@ -432,78 +433,104 @@
                 </div>
                 
                 <div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 120px; padding-bottom: 15px; font-weight: 500; letter-spacing: 0.5px; opacity: 0.5;">
-                    Versão 1.0.1 Build 2026-20m04d-Stable-ch.18
+                    Versão 1.0.1 Build 2026-21m04d-BETA-ch.18
                 </div>
             </section>
 
         </main>
 
         <!-- Modal: Cliente -->
+        <!-- Modal: Cliente -->
         <div class="modal-overlay" id="clientModal">
-            <div class="modal-container">
+            <div class="modal-container modal-md">
+                <div class="modal-drag-handle"></div>
                 <div class="modal-header">
-                    <h2 id="clientModalTitle">Novo Cliente</h2>
+                    <button class="modal-back-btn" onclick="resetModalSections('clientModal')" title="Voltar ao Menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <h2 id="clientModalTitle">Cliente</h2>
                     <button class="close-modal-btn" onclick="closeClientModal()">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="clientId">
-                    <div class="form-group">
-                        <label>Nome Completo</label>
-                        <input type="text" class="input-control" id="clientName" placeholder="Ex: João da Silva">
-                    </div>
-                    <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" class="input-control" id="clientEmail" placeholder="Ex: joao@email.com">
-                    </div>
-
-                    <div style="background: rgba(0, 0, 0, 0.02); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
-                        <label style="font-weight: 600; margin-bottom: 12px; display: block; font-size: 14px;">Endereço Completo</label>
-                        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                <label>CEP</label>
-                                <input type="text" class="input-control" id="clientCEP" placeholder="00000-000" onblur="lookupCEP(this.value, 'client')">
-                            </div>
-                            <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                                <label>Logradouro / Rua</label>
-                                <input type="text" class="input-control" id="clientAddress" placeholder="Rua, Avenida...">
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 12px;">
-                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                <label>Número</label>
-                                <input type="text" class="input-control" id="clientNumber" placeholder="Ex: 123">
-                            </div>
-                            <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                                <label>Complemento</label>
-                                <input type="text" class="input-control" id="clientComplement" placeholder="Bloco, Apto, Fundos...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Telefone Celular (WhatsApp)</label>
-                        <input type="text" class="input-control" id="clientPhone" placeholder="(00) 00000-0000">
-                    </div>
-
-                    <div id="residentialPhoneGroup" style="display: none; margin-bottom: 16px;">
-                        <div class="form-group">
-                            <label>Telefone Residencial / Fixo</label>
-                            <input type="text" class="input-control" id="clientPhoneResidential" placeholder="(00) 0000-0000">
-                        </div>
-                    </div>
                     
-                    <button type="button" id="btnAddResidential" onclick="toggleResidentialPhone('client')" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 4px; margin-bottom: 20px;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Adicionar Telefone Residencial
-                    </button>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select class="input-control" id="clientStatus">
-                            <option value="Ativo">Ativo</option>
-                            <option value="Inativo">Inativo</option>
-                        </select>
+                    <!-- MENU PRINCIPAL -->
+                    <div class="modal-nav-menu">
+                        <div class="modal-nav-item" onclick="switchModalSection('clientModal', 'clientPageData', '👤 Dados Pessoais')">
+                            <div class="modal-nav-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
+                            <div class="modal-nav-info">
+                                <span class="modal-nav-title">Dados Pessoais</span>
+                                <span class="modal-nav-desc">Nome, telefone e status de acesso</span>
+                            </div>
+                            <svg class="modal-nav-arrow" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+
+                        <div class="modal-nav-item" onclick="switchModalSection('clientModal', 'clientPageAddress', '📍 Endereço')">
+                            <div class="modal-nav-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </div>
+                            <div class="modal-nav-info">
+                                <span class="modal-nav-title">Localização / Endereço</span>
+                                <span class="modal-nav-desc">Rua, número, complemento e CEP</span>
+                            </div>
+                            <svg class="modal-nav-arrow" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+                    </div>
+
+                    <!-- PÁGINA: DADOS -->
+                    <div class="modal-page" id="clientPageData">
+                        <div class="modal-grid">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Nome Completo</label>
+                                <input type="text" class="input-control" id="clientName">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Telefone Celular</label>
+                                <input type="text" class="input-control" id="clientPhone">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;" id="residentialPhoneGroup" style="display: none;">
+                                <label>Telefone Residencial</label>
+                                <input type="text" class="input-control" id="clientPhoneResidential">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <button type="button" class="action-btn" id="btnAddResidential" onclick="toggleResidentialPhone()" style="font-size: 13px; padding: 8px 12px;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Adicionar Telefone Residencial
+                                </button>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Status</label>
+                                <select class="input-control" id="clientStatus">
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Inativo">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PÁGINA: ENDEREÇO -->
+                    <div class="modal-page" id="clientPageAddress">
+                        <div class="modal-grid">
+                            <div class="form-group">
+                                <label>CEP</label>
+                                <input type="text" class="input-control" id="clientCEP" onblur="lookupCEP(this.value, 'client')">
+                            </div>
+                            <div class="form-group">
+                                <label>Logradouro</label>
+                                <input type="text" class="input-control" id="clientAddress">
+                            </div>
+                            <div class="form-group">
+                                <label>Número</label>
+                                <input type="text" class="input-control" id="clientNumber">
+                            </div>
+                            <div class="form-group">
+                                <label>Complemento</label>
+                                <input type="text" class="input-control" id="clientComplement">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -515,141 +542,102 @@
 
         <!-- Modal: Ordem de Serviço Integrada -->
         <div class="modal-overlay" id="orderModal">
-            <div class="modal-container">
+            <div class="modal-container modal-lg">
+                <div class="modal-drag-handle"></div>
                 <div class="modal-header">
-                    <h2 id="orderModalTitle">Nova Ordem de Serviço</h2>
+                    <button class="modal-back-btn" onclick="resetModalSections('orderModal')" title="Voltar ao Menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <h2 id="orderModalTitle">Ordem de Serviço</h2>
                     <button class="close-modal-btn" onclick="closeOrderModal()">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
-                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="modal-body">
                     <input type="hidden" id="orderId">
-                    <div class="form-group">
-                        <label>Cliente</label>
-                        <div style="display: flex; gap: 8px; align-items: stretch;">
-                            <select class="input-control" id="orderClientSelect" style="flex: 1;">
-                                <!-- Preenchido via JS -->
-                            </select>
-                            <button class="action-btn primary" onclick="toggleNewClientFields()" style="white-space: nowrap; height: 100%; border-radius: 8px;" id="toggleNewClientBtn">
-                                + Novo Cliente
-                            </button>
-                        </div>
-                    </div>
                     
-                    <!-- Sessão oculta para criar cliente rápido -->
-                    <div id="newClientSection" style="display: none; background: var(--bg-light); padding: 16px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed var(--border);">
-                        <h4 style="margin-bottom: 12px; margin-top: 0; color: var(--text-main);">Cadastrar Novo Cliente</h4>
-                        <div class="form-group">
-                            <label>Nome Completo</label>
-                            <input type="text" class="input-control" id="newClientName" placeholder="Ex: João da Silva">
-                        </div>
-                        <div class="form-group">
-                            <label>Telefone Celular</label>
-                            <input type="text" class="input-control" id="newClientPhone" placeholder="(00) 00000-0000">
-                        </div>
-                        <div class="form-group">
-                            <label>E-mail (opcional)</label>
-                            <input type="email" class="input-control" id="newClientEmail" placeholder="Ex: joao@email.com">
+                    <!-- MENU DE SEÇÕES -->
+                    <div class="modal-nav-menu">
+                        <div class="modal-nav-item" onclick="switchModalSection('orderModal', 'orderPageClient', '👤 Identificação do Cliente')">
+                            <div class="modal-nav-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
+                            <div class="modal-nav-info">
+                                <span class="modal-nav-title">Cliente</span>
+                                <span class="modal-nav-desc">Selecionar ou cadastrar cliente</span>
+                            </div>
+                            <svg class="modal-nav-arrow" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
 
-                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-                            <div style="display: flex; gap: 8px;">
-                                <div class="form-group" style="flex: 1;">
-                                    <label>CEP</label>
-                                    <input type="text" class="input-control" id="newClientCEP" onblur="lookupCEP(this.value, 'new')">
-                                </div>
-                                <div class="form-group" style="flex: 2;">
-                                    <label>Endereço</label>
-                                    <input type="text" class="input-control" id="newClientAddress">
+                        <div class="modal-nav-item" onclick="switchModalSection('orderModal', 'orderPageDevice', '📺 Equipamento')">
+                            <div class="modal-nav-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            </div>
+                            <div class="modal-nav-info">
+                                <span class="modal-nav-title">Equipamento</span>
+                                <span class="modal-nav-desc">Tipo, modelo e defeito</span>
+                            </div>
+                            <svg class="modal-nav-arrow" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+
+                        <div class="modal-nav-item" onclick="switchModalSection('orderModal', 'orderPageFinance', '💰 Valores e Peças')">
+                            <div class="modal-nav-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            </div>
+                            <div class="modal-nav-info">
+                                <span class="modal-nav-title">Valores e Peças</span>
+                                <span class="modal-nav-desc">Mão de obra e estoque</span>
+                            </div>
+                            <svg class="modal-nav-arrow" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+                    </div>
+
+                    <!-- PÁGINA 1: CLIENTE -->
+                    <div class="modal-page" id="orderPageClient">
+                        <div class="modal-grid">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Cliente</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <select class="input-control" id="orderClientSelect" style="flex: 1;"></select>
+                                    <button class="action-btn primary" onclick="toggleNewClientFields()" id="toggleNewClientBtn">+ Novo</button>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <div class="form-group" style="flex: 1;">
-                                    <label>Nº</label>
-                                    <input type="text" class="input-control" id="newClientNumber">
-                                </div>
-                                <div class="form-group" style="flex: 2;">
-                                    <label>Complemento</label>
-                                    <input type="text" class="input-control" id="newClientComplement">
+
+                            <div id="newClientSection" style="display: none; grid-column: span 2; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px dashed #e2e8f0;">
+                                <div class="modal-grid" style="margin-bottom: 0;">
+                                    <div class="form-group" style="grid-column: span 2;"><label>Nome Completo</label><input type="text" class="input-control" id="newClientName"></div>
+                                    <div class="form-group"><label>Telefone</label><input type="text" class="input-control" id="newClientPhone"></div>
+                                    <div class="form-group"><label>CEP</label><input type="text" class="input-control" id="newClientCEP" onblur="lookupCEP(this.value, 'new')"></div>
+                                    <div class="form-group" style="grid-column: span 2;"><label>Endereço</label><input type="text" class="input-control" id="newClientAddress"></div>
+                                    <div class="form-group"><label>Nº</label><input type="text" class="input-control" id="newClientNumber"></div>
+                                    <div class="form-group"><label>Complemento</label><input type="text" class="input-control" id="newClientComplement"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 16px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Tipo</label>
-                            <select class="input-control" id="orderDeviceType">
-                                <option value="TV">TV</option>
-                                <option value="Home Theater">Home Theater</option>
-                                <option value="Monitor">Monitor</option>
-                                <option value="Notebook/PC">Notebook/PC</option>
-                                <option value="Outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="flex: 2;">
-                            <label>Marca e Modelo</label>
-                            <input type="text" class="input-control" id="orderDeviceModel" placeholder="Ex: Samsung 55 4K">
+                    <!-- PÁGINA 2: EQUIPAMENTO -->
+                    <div class="modal-page" id="orderPageDevice">
+                        <div class="modal-grid">
+                            <div class="form-group"><label>Tipo</label><select class="input-control" id="orderDeviceType"><option value="TV">TV</option><option value="Home Theater">Home Theater</option><option value="Monitor">Monitor</option><option value="Notebook/PC">Notebook/PC</option><option value="Outros">Outros</option></select></div>
+                            <div class="form-group"><label>Marca e Modelo</label><input type="text" class="input-control" id="orderDeviceModel" placeholder="Ex: Samsung 55 4K"></div>
+                            <div class="form-group"><label>Nº de Série</label><input type="text" class="input-control" id="orderDeviceSerial" placeholder="S/N"></div>
+                            <div class="form-group"><label>Previsão</label><input type="date" class="input-control" id="orderEstimatedDate"></div>
+                            <div class="form-group" style="grid-column: span 2;"><label>Problema Relatado</label><textarea class="input-control" id="orderIssue" rows="3"></textarea></div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 16px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Nº de Série</label>
-                            <input type="text" class="input-control" id="orderDeviceSerial" placeholder="Insira S/N se não houver">
+                    <!-- PÁGINA 3: VALORES -->
+                    <div class="modal-page" id="orderPageFinance">
+                        <div class="modal-grid">
+                            <div class="form-group"><label>Mão de Obra (R$)</label><input type="number" step="0.01" class="input-control" id="orderLaborPrice" onchange="calculateOrderTotal()"></div>
+                            <div class="form-group"><label>Peças (R$)</label><input type="number" class="input-control" id="orderPartsTotal" value="0.00" disabled style="background-color: #f8fafc;"></div>
+                            <div class="form-group" style="grid-column: span 2;"><label>Adicionar Peça</label><div style="display: flex; gap: 8px;"><select class="input-control" id="orderPartSelector" style="flex: 1;"><option value="">Escolha...</option></select><button class="action-btn primary" onclick="addPartToOrder()">Add</button></div></div>
+                            <div class="form-group" style="grid-column: span 2;"><ul id="orderUsedPartsList" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;"></ul></div>
+                            <div class="form-group" style="grid-column: span 2; background: #f1f5f9; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 14px; font-weight: 600; color: #64748b;">TOTAL:</span><span id="orderTotalDisplay" style="font-size: 20px; font-weight: 800; color: var(--primary);">R$ 0,00</span></div>
+                            <div class="form-group" id="orderStatusGroup" style="display: none; grid-column: span 2;"><label>Status da Ordem</label><select class="input-control" id="orderStatus" onchange="handleStatusChange()"><option value="Análise">Análise</option><option value="Reparo">Reparo</option><option value="Pronto">Pronto</option><option value="Entregue">Entregue</option></select></div>
+                            <input type="hidden" id="orderFinalValue"><input type="hidden" id="orderEstimatedValue">
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label>Previsão de Entrega</label>
-                            <input type="date" class="input-control" id="orderEstimatedDate">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Reclamação / Defeito</label>
-                        <textarea class="input-control" id="orderIssue" rows="3" placeholder="Ex: Aparelho não liga, led piscando..."></textarea>
-                    </div>
-
-                    <div style="display: flex; gap: 16px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Mão de Obra (R$)</label>
-                            <input type="number" step="0.01" class="input-control" id="orderLaborPrice" placeholder="0,00" onchange="calculateOrderTotal()">
-                        </div>
-                        <div class="form-group" style="flex: 1; opacity: 0.7;">
-                            <label>Soma de Peças (R$)</label>
-                            <input type="number" class="input-control" id="orderPartsTotal" value="0.00" disabled>
-                        </div>
-                    </div>
-
-                    <div style="background: var(--bg-light); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border);">
-                        <label style="font-weight: 600; margin-bottom: 12px; display: block;">Peças Utilizadas no Reparo</label>
-                        
-                        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                            <select class="input-control" id="orderPartSelector" style="flex: 2;">
-                                <option value="">Escolha uma peça do estoque...</option>
-                                <!-- Injetado por JS -->
-                            </select>
-                            <button class="action-btn" onclick="addPartToOrder()" style="background: var(--primary); color: white; border: none;">Add</button>
-                        </div>
-
-                        <ul id="orderUsedPartsList" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
-                            <!-- Injetado por JS -->
-                        </ul>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 600; color: var(--primary);">VALOR TOTAL FINAL: <span id="orderTotalDisplay">R$ 0,00</span></label>
-                        <input type="hidden" id="orderFinalValue">
-                        <input type="hidden" id="orderEstimatedValue">
-                    </div>
-
-                    <div class="form-group" id="orderStatusGroup" style="display: none;">
-                        <label>Status da Ordem</label>
-                        <select class="input-control" id="orderStatus" onchange="handleStatusChange()">
-                            <option value="Análise">Análise</option>
-                            <option value="Reparo">Reparo</option>
-                            <option value="Pronto">Pronto</option>
-                            <option value="Entregue">Entregue</option>
-                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -660,7 +648,8 @@
         </div>
         <!-- Modal: Funcionário -->
         <div class="modal-overlay" id="staffModal">
-            <div class="modal-container" style="max-width: 450px;">
+            <div class="modal-container modal-sm">
+                <div class="modal-drag-handle"></div>
                 <div class="modal-header">
                     <h2>Novo Funcionário</h2>
                     <button class="close-modal-btn" onclick="closeStaffModal()">
@@ -668,24 +657,26 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Nome Completo</label>
-                        <input type="text" class="input-control" id="staffName" placeholder="Ex: Lucas Silva">
-                    </div>
-                    <div class="form-group">
-                        <label>E-mail Corporativo</label>
-                        <input type="email" class="input-control" id="staffEmail" placeholder="funcionario@gmail.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Senha Inicial</label>
-                        <input type="password" class="input-control" id="staffPassword" placeholder="No mínimo 6 caracteres">
-                    </div>
-                    <div class="form-group">
-                        <label>Nível de Acesso (Tag)</label>
-                        <select class="input-control" id="staffTag">
-                            <option value="worker">Funcionário (worker)</option>
-                            <option value="adm">Administrador (adm)</option>
-                        </select>
+                    <div class="modal-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nome Completo</label>
+                            <input type="text" class="input-control" id="staffName" placeholder="Ex: Lucas Silva">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>E-mail Corporativo</label>
+                            <input type="email" class="input-control" id="staffEmail" placeholder="funcionario@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Senha Inicial</label>
+                            <input type="password" class="input-control" id="staffPassword" placeholder="******">
+                        </div>
+                        <div class="form-group">
+                            <label>Nível de Acesso</label>
+                            <select class="input-control" id="staffTag">
+                                <option value="worker">Funcionário</option>
+                                <option value="adm">Administrador</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -697,7 +688,8 @@
 
         <!-- Modal: Peça (Estoque) -->
         <div class="modal-overlay" id="partModal">
-            <div class="modal-container" style="max-width: 450px;">
+            <div class="modal-container modal-sm">
+                <div class="modal-drag-handle"></div>
                 <div class="modal-header">
                     <h2 id="partModalTitle">Nova Peça</h2>
                     <button class="close-modal-btn" onclick="closePartModal()">
@@ -706,20 +698,20 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="partId">
-                    <div class="form-group">
-                        <label>Nome da Peça</label>
-                        <input type="text" class="input-control" id="partName" placeholder="Ex: Tela LCD LG K40">
-                    </div>
-                    <div class="form-group">
-                        <label>Modelo de Dispositivo Compatível</label>
-                        <input type="text" class="input-control" id="partModel" placeholder="Ex: LG K40 / K40S">
-                    </div>
-                    <div style="display: flex; gap: 16px;">
-                        <div class="form-group" style="flex: 1;">
+                    <div class="modal-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nome da Peça</label>
+                            <input type="text" class="input-control" id="partName" placeholder="Ex: Tela LCD LG K40">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Modelo de Dispositivo Compatível</label>
+                            <input type="text" class="input-control" id="partModel" placeholder="Ex: LG K40 / K40S">
+                        </div>
+                        <div class="form-group">
                             <label>Preço de Venda (R$)</label>
                             <input type="number" step="0.01" class="input-control" id="partPrice" placeholder="0,00">
                         </div>
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label>Qtd em Estoque</label>
                             <input type="number" class="input-control" id="partStock" placeholder="0">
                         </div>
@@ -734,331 +726,20 @@
 
         <!-- Modal: Confirm Action -->
         <div class="modal-overlay" id="confirmModal" style="z-index: 1000;">
-            <div class="modal-container" style="max-width: 400px; padding: 24px;">
-                <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+            <div class="modal-container modal-sm">
+                <div class="modal-drag-handle"></div>
+                <div class="modal-header">
                     <h2 id="confirmModalTitle">Atenção</h2>
                 </div>
-                <div class="modal-body" style="padding: 16px 0;">
-                    <p id="confirmModalMessage" style="color: var(--text-muted); line-height: 1.5; font-size: 15px; margin:0;"></p>
+                <div class="modal-body">
+                    <p id="confirmModalMessage" style="color: var(--text-muted); line-height: 1.6; font-size: 15px; margin:0;"></p>
                 </div>
-                <div class="modal-footer" style="border-top: none; padding-top: 8px;">
+                <div class="modal-footer">
                     <button class="action-btn" id="confirmModalCancelBtn">Cancelar</button>
-                    <button class="action-btn danger" id="confirmModalConfirmBtn">Confirmar</button>
-                </div>
-            </div>
-    </div>
-
-    <!-- Modal de Detalhes Mobile (Modular) -->
-    <div class="modal-overlay mobile-details-modal" id="mobileDetailsModal">
-        <!-- (Conteúdo existente do modal de ordens) -->
-        <div class="modal-content" style="background: white !important;">
-            <div class="mobile-details-header">
-                <button class="forgot-modal-close" onclick="closeMobileDetails()" id="btnMobileClose" style="top: 15px; right: 15px;">&times;</button>
-                <button class="back-btn" id="btnMobileBack" onclick="showMobileMenu()" style="display: none; position: absolute; left: 15px; top: 15px; background: none; border: none; color: var(--primary); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    Voltar
-                </button>
-                <div style="text-align: center; width: 100%;">
-                    <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gestão de Ordem</div>
-                    <h3 id="mobileClientName" style="margin-top: 2px; font-size: 18px;">Carregando...</h3>
-                    <div id="mobileOSNumber" style="font-size: 12px; color: var(--primary); font-weight: 500;">OS-0000</div>
-                </div>
-            </div>
-            
-            <div class="mobile-details-body">
-                <input type="hidden" id="mobileOrderId">
-                
-                <!-- MENU PRINCIPAL -->
-                <div id="mobileDetailsMenu" class="mobile-menu-grid">
-                    <button class="menu-card" onclick="showMobileSection('device')">
-                        <div class="menu-icon blue">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Aparelho</span>
-                            <small>Marca, modelo e defeito</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                    
-                    <button class="menu-card" onclick="showMobileSection('parts')">
-                        <div class="menu-icon orange">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Peças</span>
-                            <small>Gerenciar componentes</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-
-                    <button class="menu-card" onclick="showMobileSection('finance')">
-                        <div class="menu-icon green">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Financeiro / Status</span>
-                            <small>Preço e situação atual</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                </div>
-
-                <!-- SEÇÕES DAS ORDENS (OCULTAS) -->
-                <!-- ... -->
-                <div id="sectionDevice" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Aparelho e Relato</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <input type="text" class="input-control" id="mobileDeviceType" placeholder="Tipo">
-                            <input type="text" class="input-control" id="mobileDeviceModel" placeholder="Marca/Modelo">
-                        </div>
-                        <input type="text" class="input-control" id="mobileDeviceSerial" placeholder="Nº de Série" style="margin-bottom: 10px;">
-                        <textarea class="input-control" id="mobileIssue" rows="3" placeholder="Reclamação/Defeito" style="margin-bottom: 10px;"></textarea>
-                        
-                        <div class="form-group">
-                            <label style="font-size: 12px;">Previsão de Entrega</label>
-                            <input type="date" class="input-control" id="mobileEstimatedDate">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="sectionParts" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Gerenciar Peças</h4>
-                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-                            <select class="input-control" id="mobilePartSelector" style="flex: 1;"></select>
-                            <button class="action-btn" onclick="addPartToMobileOrder()" style="background: var(--primary); color: white; padding: 0 15px;">+</button>
-                        </div>
-                        <ul id="mobilePartsList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
-                    </div>
-                </div>
-
-                <div id="sectionFinance" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Mão de Obra e Status</h4>
-                        <div class="form-group">
-                            <label>Valor Mão de Obra (R$)</label>
-                            <input type="number" step="0.01" class="input-control" id="mobileLaborPrice" placeholder="0,00" onchange="calculateMobileTotal()" style="margin-bottom: 15px;">
-                        </div>
-                        
-                        <div class="form-group">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="margin-bottom: 0;">Status da OS</label>
-                                <span id="mobileStatusBadge" class="status-badge">Análise</span>
-                            </div>
-                            <select class="input-control" id="mobileStatus" onchange="window.handleMobileStatusChange()">
-                                <option value="Análise">Análise</option>
-                                <option value="Reparo">Reparo</option>
-                                <option value="Pronto">Pronto</option>
-                                <option value="Entregue">Entregue</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mobile-details-footer">
-                <div class="mobile-total-box">
-                    <span class="mobile-total-label">Subtotal Geral</span>
-                    <span class="mobile-total-value" id="mobileTotalDisplay">R$ 0,00</span>
-                </div>
-                
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button class="action-btn" onclick="printMobileOrder()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: #f1f5f9; padding: 12px;">
-                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                         Imprimir Ordem de Serviço
-                    </button>
-                </div>
-
-                <div style="display: flex; gap: 8px;">
-                    <button class="action-btn primary" onclick="saveMobileDetails()" id="btnSaveMobile" style="flex: 1;">Salvar Alterações</button>
-                    <button class="action-btn danger" onclick="deleteMobileOrder()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
+                    <button class="action-btn danger" id="confirmModalConfirmBtn">Confirmar Ação</button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Modal de Cliente Mobile (Modular) -->
-    <div class="modal-overlay mobile-details-modal" id="mobileClientModal">
-        <div class="modal-content" style="background: white !important;">
-            <div class="mobile-details-header">
-                <button class="forgot-modal-close" onclick="closeMobileClient()" id="btnClientClose" style="top: 15px; right: 15px;">&times;</button>
-                <button class="back-btn" id="btnClientBack" onclick="showMobileClientMenu()" style="display: none; position: absolute; left: 15px; top: 15px; background: none; border: none; color: var(--primary); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    Voltar
-                </button>
-                <div style="text-align: center; width: 100%;">
-                    <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gestão de Cliente</div>
-                    <h3 id="mobileClientHeaderName" style="margin-top: 2px; font-size: 18px;">Novo Cliente</h3>
-                    <div id="mobileClientStatusBadge" class="status-badge completed" style="font-size: 10px; margin-top: 2px;">Ativo</div>
-                </div>
-            </div>
-            
-            <div class="mobile-details-body">
-                <input type="hidden" id="mobileClientId">
-                <div id="mobileClientMenu" class="mobile-menu-grid">
-                    <button class="menu-card" onclick="showMobileClientSection('basic')">
-                        <div class="menu-icon blue">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Dados Pessoais</span>
-                            <small>Nome, e-mail e cadastro</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                    
-                    <button class="menu-card" onclick="showMobileClientSection('address')">
-                        <div class="menu-icon green">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Endereço</span>
-                            <small>CEP, rua e localização</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-
-                    <button class="menu-card" onclick="showMobileClientSection('contact')">
-                        <div class="menu-icon orange">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Canais de Contato</span>
-                            <small>Celular e telefone fixo</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                </div>
-
-                <div id="sectionClientBasic" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Informações Básicas</h4>
-                        <input type="text" class="input-control" id="mobileClientNameInput" placeholder="Nome Completo" style="margin-bottom: 12px;">
-                        <input type="email" class="input-control" id="mobileClientEmailInput" placeholder="E-mail (Opcional)">
-                    </div>
-                </div>
-
-                <div id="sectionClientAddress" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Localização</h4>
-                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-                            <input type="text" class="input-control" id="mobileClientCEP" placeholder="CEP" style="flex: 1;">
-                            <button class="action-btn" onclick="buscarCEP('mobileClient')" style="background: var(--primary); color: white; padding: 0 12px;">🔍</button>
-                        </div>
-                        <input type="text" class="input-control" id="mobileClientAddress" placeholder="Rua / Logradouro" style="margin-bottom: 12px;">
-                        <div style="display: grid; grid-template-columns: 80px 1fr; gap: 10px; margin-bottom: 12px;">
-                            <input type="text" class="input-control" id="mobileClientNumber" placeholder="Nº">
-                            <input type="text" class="input-control" id="mobileClientComplement" placeholder="Comp. (Apto, etc)">
-                        </div>
-                        <input type="text" class="input-control" id="mobileClientNeighborhood" placeholder="Bairro">
-                    </div>
-                </div>
-
-                <div id="sectionClientContact" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Telefones</h4>
-                        <div class="form-group">
-                            <label>Celular (WhatsApp)</label>
-                            <input type="text" class="input-control" id="mobileClientPhone" placeholder="(00) 00000-0000" style="margin-bottom: 15px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Telefone Residencial / Fixo</label>
-                            <input type="text" class="input-control" id="mobileClientPhoneResidential" placeholder="(00) 0000-0000">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mobile-details-footer">
-                <div style="display: flex; gap: 8px;">
-                    <button class="action-btn primary" onclick="saveMobileClient()" id="btnSaveMobileClient" style="flex: 1;">Salvar Cliente</button>
-                    <button class="action-btn danger" onclick="deleteMobileClient()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Peça Mobile (Modular) -->
-    <div class="modal-overlay mobile-details-modal" id="mobilePartModal">
-        <div class="modal-content" style="background: white !important;">
-            <div class="mobile-details-header">
-                <button class="forgot-modal-close" onclick="closeMobilePart()" id="btnPartClose" style="top: 15px; right: 15px;">&times;</button>
-                <button class="back-btn" id="btnPartBack" onclick="showMobilePartMenu()" style="display: none; position: absolute; left: 15px; top: 15px; background: none; border: none; color: var(--primary); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    Voltar
-                </button>
-                <div style="text-align: center; width: 100%;">
-                    <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gestão de Estoque</div>
-                    <h3 id="mobilePartHeaderName" style="margin-top: 2px; font-size: 18px;">Nova Peça</h3>
-                    <div id="mobilePartHeaderModel" style="font-size: 12px; color: var(--primary); font-weight: 500;">Modelo Compatível</div>
-                </div>
-            </div>
-            
-            <div class="mobile-details-body">
-                <input type="hidden" id="mobilePartIdInput">
-                <div id="mobilePartMenu" class="mobile-menu-grid">
-                    <button class="menu-card" onclick="showMobilePartSection('info')">
-                        <div class="menu-icon blue">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Identificação</span>
-                            <small>Nome e compatibilidade</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                    
-                    <button class="menu-card" onclick="showMobilePartSection('stock')">
-                        <div class="menu-icon green">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        </div>
-                        <div class="menu-text">
-                            <span>Preço e Estoque</span>
-                            <small>Valor unitário e quantidades</small>
-                        </div>
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-left: auto; opacity: 0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                </div>
-
-                <div id="sectionPartInfo" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Dados da Peça</h4>
-                        <input type="text" class="input-control" id="mobilePartNameInput" placeholder="Nome da Peça" style="margin-bottom: 12px;">
-                        <input type="text" class="input-control" id="mobilePartModelInput" placeholder="Modelo Compatível">
-                    </div>
-                </div>
-
-                <div id="sectionPartStock" class="mobile-section" style="display: none;">
-                    <div class="mobile-details-section">
-                        <h4>Valores e Quantidade</h4>
-                        <div class="form-group">
-                            <label>Preço de Venda (R$)</label>
-                            <input type="number" step="0.01" class="input-control" id="mobilePartPriceInput" placeholder="0,00" style="margin-bottom: 15px;">
-                        </div>
-                        <div class="form-group">
-                            <label>Quantidade Disponível</label>
-                            <input type="number" class="input-control" id="mobilePartStockInput" placeholder="0">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mobile-details-footer">
-                <div style="display: flex; gap: 8px;">
-                    <button class="action-btn primary" onclick="saveMobilePart()" id="btnSaveMobilePart" style="flex: 1;">Salvar Peça</button>
-                    <button class="action-btn danger" onclick="deleteMobilePart()" style="padding: 10px; min-width: 44px; display: flex; align-items: center; justify-content: center;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div id="print-container"></div>
 
@@ -1077,7 +758,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="js/dashboard.js?v=10"></script>
 
     <!-- Service Worker Registration -->
     <script>
